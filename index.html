@@ -399,15 +399,13 @@ function applyTranslations() {
 let user = null;
 sb.auth.onAuthStateChange(async (event, session) => {
   if (session) {
-    const {data} = await sb.from('profiles').select('nickname').eq('id', session.user.id).single();
-    user = {
-      id: session.user.id,
-      email: session.user.email,
-      nick: data?.nickname || session.user.email.split('@')[0]
-    };
-  } else {
-    user = null;
-  }
+    try {
+      const {data} = await sb.from('profiles').select('nickname').eq('id', session.user.id).single();
+      user = { id: session.user.id, email: session.user.email, nick: data?.nickname || session.user.email.split('@')[0] };
+    } catch(e) {
+      user = { id: session.user.id, email: session.user.email, nick: session.user.email.split('@')[0] };
+    }
+  } else { user = null; }
   updateNav();
 });
 
@@ -439,7 +437,7 @@ async function doLogin() {
   btn.disabled=true; btn.textContent='...';
   const {error} = await sb.auth.signInWithPassword({email, password:pass});
   if(error){err.textContent=t('err_login');btn.disabled=false;btn.textContent=t('lb');return;}
-  btn.disabled=false; btn.textContent=t('lb');
+  btn.disabled=false; btn.textContent=t('lb'); // ← это уже есть
   goto('shop');
 }
 
