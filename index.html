@@ -1,0 +1,337 @@
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08060f;--s1:#0f0b1a;--s2:#140e22;--s3:#1a1230;
+  --acc:#a855f7;--acc2:#7c3aed;--acc3:#c084fc;
+  --pink:#ec4899;--cyan:#06b6d4;
+  --text:#e2d9f3;--muted:#6b5f85;--dim:#9d8cc0;
+  --border:#2a1f40;--border2:#3d2a5c;
+}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:600px}
+.mono{font-family:'JetBrains Mono',monospace}
+
+header{
+  padding:14px 28px;background:var(--s1);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50;
+}
+.logo{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;
+  background:linear-gradient(135deg,var(--acc3),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:1px}
+.nav{display:flex;gap:6px;align-items:center}
+.nav-btn{
+  font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:500;
+  padding:7px 16px;border-radius:8px;cursor:pointer;transition:all .15s;border:none;
+}
+.nav-ghost{background:transparent;border:1px solid var(--border2);color:var(--dim)}
+.nav-ghost:hover{border-color:var(--acc);color:var(--acc)}
+.nav-solid{background:var(--acc2);color:#fff}
+.nav-solid:hover{background:var(--acc)}
+
+.page{display:none}.page.active{display:block}
+
+.hero{
+  padding:52px 28px 36px;text-align:center;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,#1e0a3c 0%,transparent 70%);
+  border-bottom:1px solid var(--border);
+}
+.hero-badge{
+  display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;
+  color:var(--acc3);background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.3);
+  padding:5px 16px;border-radius:20px;margin-bottom:18px;
+}
+.hero h1{font-family:'JetBrains Mono',monospace;font-size:40px;font-weight:600;margin-bottom:10px;
+  background:linear-gradient(135deg,#fff 0%,var(--acc3) 50%,var(--pink) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px}
+.hero p{color:var(--dim);font-size:14px;font-weight:400;margin-bottom:28px}
+.hero-stats{display:flex;gap:32px;justify-content:center}
+.stat-n{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:600;color:var(--acc3)}
+.stat-l{font-size:12px;color:var(--muted);margin-top:2px}
+
+.filters{display:flex;gap:8px;padding:18px 28px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.fb{
+  font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:500;
+  padding:6px 16px;border:1px solid var(--border);background:var(--s1);
+  color:var(--muted);cursor:pointer;border-radius:20px;transition:all .15s;
+}
+.fb:hover,.fb.on{border-color:var(--acc);color:var(--acc);background:rgba(168,85,247,.1)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;padding:24px 28px}
+.card{
+  background:var(--s1);border:1px solid var(--border);border-radius:14px;
+  padding:20px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;
+}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--acc),transparent);opacity:0;transition:opacity .2s}
+.card:hover{border-color:var(--border2);transform:translateY(-2px);background:var(--s2)}
+.card:hover::before{opacity:1}
+.ctag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.5px;
+  padding:3px 10px;border-radius:10px;margin-bottom:12px}
+.ctag.auto{background:rgba(6,182,212,.15);color:var(--cyan);border:1px solid rgba(6,182,212,.25)}
+.ctag.visual{background:rgba(168,85,247,.15);color:var(--acc3);border:1px solid rgba(168,85,247,.25)}
+.ctag.combat{background:rgba(236,72,153,.15);color:var(--pink);border:1px solid rgba(236,72,153,.25)}
+.ctitle{font-size:16px;font-weight:600;margin-bottom:5px;color:var(--text)}
+.cdesc{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:16px;font-weight:400}
+.cfoot{display:flex;align-items:center;justify-content:space-between}
+.cprice{font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:600;color:var(--acc3)}
+.cbtn{font-size:13px;font-weight:500;
+  padding:7px 16px;background:rgba(168,85,247,.15);border:1px solid var(--border2);
+  color:var(--acc3);cursor:pointer;border-radius:8px;transition:all .15s}
+.cbtn:hover{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);
+  display:none;align-items:center;justify-content:center;z-index:200;padding:20px;backdrop-filter:blur(4px)}
+.overlay.open{display:flex}
+.modal{background:var(--s2);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:460px;overflow:hidden}
+.mhead{padding:20px 24px;border-bottom:1px solid var(--border);
+  background:linear-gradient(135deg,#1a0a30,var(--s2));
+  display:flex;align-items:center;justify-content:space-between}
+.mtitle{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;
+  background:linear-gradient(90deg,var(--acc3),var(--pink));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.xbtn{background:rgba(255,255,255,.06);border:none;color:var(--dim);
+  width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:18px;
+  display:flex;align-items:center;justify-content:center;transition:all .15s}
+.xbtn:hover{color:var(--pink);background:rgba(236,72,153,.15)}
+.mbody{padding:24px}
+.mexec{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--dim);
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  padding:4px 10px;border-radius:20px;margin-bottom:14px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--acc);box-shadow:0 0 6px var(--acc)}
+.mdesc{font-size:13px;color:var(--dim);line-height:1.6;margin-bottom:16px;font-weight:400}
+.mfeats{list-style:none}
+.mfeats li{font-size:13px;color:var(--text);padding:6px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;font-weight:400}
+.mfeats li:last-child{border:none}
+.mfeats li::before{content:'✦';color:var(--acc);font-size:9px;flex-shrink:0}
+.mfoot{padding:16px 24px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;background:var(--s1)}
+.mprice{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;color:var(--acc3)}
+.buybtn{font-size:13px;font-weight:600;letter-spacing:.5px;
+  padding:12px 28px;background:linear-gradient(135deg,var(--acc2),var(--pink));
+  color:#fff;border:none;cursor:pointer;border-radius:10px;transition:all .15s}
+.buybtn:hover{opacity:.9;transform:translateY(-1px)}
+
+.cab-wrap{padding:28px}
+.cab-header{background:linear-gradient(135deg,#1a0a30,var(--s2));border:1px solid var(--border2);border-radius:16px;padding:24px;margin-bottom:20px;display:flex;align-items:center;gap:16px}
+.avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--acc2),var(--pink));display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;font-weight:700;flex-shrink:0}
+.cab-name{font-size:17px;font-weight:600;color:var(--text);margin-bottom:3px}
+.cab-meta{font-size:13px;color:var(--muted)}
+.cab-section-title{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:1px;color:var(--dim);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.empty{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+.purchase-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.p-name{font-size:14px;font-weight:600;margin-bottom:3px;color:var(--text)}
+.p-date{font-size:12px;color:var(--muted)}
+.p-price{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--acc3);margin-bottom:6px;text-align:right}
+.copy-btn{font-size:12px;font-weight:500;padding:6px 14px;background:rgba(168,85,247,.15);border:1px solid var(--border2);color:var(--acc3);cursor:pointer;border-radius:8px;transition:all .15s}
+.copy-btn:hover{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+
+.login-wrap{max-width:360px;margin:40px auto;padding:28px}
+.login-box{background:var(--s1);border:1px solid var(--border2);border-radius:16px;padding:28px}
+.login-title{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;text-align:center;margin-bottom:6px;color:var(--text)}
+.login-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:24px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--dim);margin-bottom:6px;letter-spacing:.5px}
+.field input{width:100%;padding:10px 14px;background:var(--s2);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:14px;font-family:'Space Grotesk',sans-serif;outline:none;transition:border-color .15s}
+.field input:focus{border-color:var(--acc)}
+.submit-btn{width:100%;padding:12px;font-size:14px;font-weight:600;background:linear-gradient(135deg,var(--acc2),var(--pink));color:#fff;border:none;border-radius:10px;cursor:pointer;margin-top:6px;transition:opacity .15s}
+.submit-btn:hover{opacity:.9}
+.alt-link{text-align:center;font-size:13px;color:var(--muted);margin-top:14px}
+.alt-link a{color:var(--acc3);cursor:pointer}
+</style>
+
+<header>
+  <div class="logo">GGshop</div>
+  <nav class="nav">
+    <button class="nav-btn nav-ghost" onclick="goto('shop')">Магазин</button>
+    <button class="nav-btn nav-ghost" id="cab-nav-btn" onclick="goto('cabinet')">Кабинет</button>
+    <button class="nav-btn nav-solid" id="auth-nav-btn" onclick="goto('login')" style="display:none">Войти</button>
+  </nav>
+</header>
+
+<div class="page active" id="page-shop">
+  <div class="hero">
+    <div class="hero-badge">✦ ROBLOX SCRIPTS ✦</div>
+    <h1>GGshop</h1>
+    <p>качественные скрипты по доступным ценам</p>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-n">6</div><div class="stat-l">скриптов</div></div>
+      <div class="stat"><div class="stat-n">24/7</div><div class="stat-l">поддержка</div></div>
+      <div class="stat"><div class="stat-n">100%</div><div class="stat-l">рабочие</div></div>
+    </div>
+  </div>
+  <div class="filters">
+    <button class="fb on" onclick="filter('all',this)">Все</button>
+    <button class="fb" onclick="filter('auto',this)">Авто</button>
+    <button class="fb" onclick="filter('visual',this)">Визуал</button>
+    <button class="fb" onclick="filter('combat',this)">Боёвка</button>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="page" id="page-cabinet">
+  <div class="cab-wrap" id="cab-content"></div>
+</div>
+
+<div class="page" id="page-login">
+  <div class="login-wrap">
+    <div class="login-box" id="login-box">
+      <div class="login-title">Войти</div>
+      <div class="login-sub">доступ к покупкам</div>
+      <div class="field"><label>Никнейм</label><input id="li-nick" placeholder="твой никнейм"/></div>
+      <div class="field"><label>Email</label><input id="li-email" type="email" placeholder="email@example.com"/></div>
+      <button class="submit-btn" onclick="doLogin()">Войти</button>
+      <div class="alt-link">нет аккаунта? <a onclick="showReg()">Регистрация</a></div>
+    </div>
+    <div class="login-box" id="reg-box" style="display:none">
+      <div class="login-title">Регистрация</div>
+      <div class="login-sub">создать аккаунт</div>
+      <div class="field"><label>Никнейм</label><input id="r-nick" placeholder="твой никнейм"/></div>
+      <div class="field"><label>Email</label><input id="r-email" type="email" placeholder="email@example.com"/></div>
+      <button class="submit-btn" onclick="doReg()">Создать аккаунт</button>
+      <div class="alt-link">уже есть аккаунт? <a onclick="showLogin()">Войти</a></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="mhead">
+      <span class="mtitle" id="m-title">—</span>
+      <button class="xbtn" onclick="closeModal()">×</button>
+    </div>
+    <div class="mbody">
+      <div class="mexec"><span class="dot"></span><span id="m-exec">—</span></div>
+      <div class="mdesc" id="m-desc">—</div>
+      <ul class="mfeats" id="m-feats"></ul>
+    </div>
+    <div class="mfoot">
+      <div class="mprice" id="m-price">—</div>
+      <button class="buybtn" id="m-buy">Купить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const WALLET='4100119480343964';
+const SITE='https://ggshop.github.io';
+
+// ═══════════════════════════════════════════════
+//  СКРИПТЫ — редактируй здесь
+//  Поля: id, cat(auto/visual/combat), title,
+//        short(короткое), desc(длинное),
+//        feats(список фич), price(₽),
+//        exec(executor), raw(ссылка на скрипт)
+// ═══════════════════════════════════════════════
+const scripts = [
+  {
+    id: 1, cat: 'auto',
+    title: 'Flag Runner',
+    short: 'AFK-ходилка для тайкунов',
+    desc: 'Ставишь точки — он ходит сам. Работает ночью пока ты спишь, собирает предметы по маршруту.',
+    feats: ['Неограниченное кол-во точек','Настройка времени ожидания','Обход зависаний','Работает после респавна'],
+    price: 79, exec: 'Xeno / Solara',
+    raw: 'https://raw.githubusercontent.com/ggshop/scripts/main/flagrunner.lua'
+  },
+  {
+    id: 2, cat: 'visual',
+    title: 'Sky Replacer',
+    short: 'Замена неба в игре',
+    desc: 'Меняет стандартное небо Roblox на кастомное. Пресеты: ночь, закат, киберпанк.',
+    feats: ['5 готовых пресетов','Ночь / закат / киберпанк','Без влияния на FPS','Мгновенное переключение'],
+    price: 49, exec: 'Любой',
+    raw: 'https://raw.githubusercontent.com/ggshop/scripts/main/skyreplacer.lua'
+  },
+  {
+    id: 3, cat: 'visual',
+    title: 'Grass Changer',
+    short: 'Замена травы и текстур',
+    desc: 'Кастомные текстуры земли и травы. Несколько паков в комплекте.',
+    feats: ['Замена травы / песка / камня','Несколько текстурных паков','Лёгкий на FPS','Простая настройка'],
+    price: 49, exec: 'Любой',
+    raw: 'https://raw.githubusercontent.com/ggshop/scripts/main/grasschanger.lua'
+  },
+  {
+    id: 4, cat: 'combat',
+    title: 'AimHelper',
+    short: 'Вспомогательный прицел',
+    desc: 'Подсветка хитбоксов и индикаторы дистанции. Лёгкая помощь без автоприцела.',
+    feats: ['Подсветка хитбокса','Индикатор дистанции','Настройка цвета','Большинство игр'],
+    price: 99, exec: 'Xeno / Synapse',
+    raw: 'https://raw.githubusercontent.com/ggshop/scripts/main/aimhelper.lua'
+  },
+  {
+    id: 5, cat: 'auto',
+    title: 'Farm Runner',
+    short: 'Авто-фарм ресурсов',
+    desc: 'Автоматически собирает ресурсы по карте. Подходит для большинства тайкунов.',
+    feats: ['Автосбор ресурсов','Петля по маршруту','Пауза / старт','Уведомление о круге'],
+    price: 79, exec: 'Xeno / Solara',
+    raw: 'https://raw.githubusercontent.com/ggshop/scripts/main/farmrunner.lua'
+  },
+  {
+    id: 6, cat: 'visual',
+    title: 'UI Themer',
+    short: 'Тёмная тема для GUI',
+    desc: 'Накладывает красивый тёмный оверлей поверх стандартного UI Roblox.',
+    feats: ['Тёмная тема','Настройка цветов','Минимализм','Без влияния на геймплей'],
+    price: 59, exec: 'Любой',
+    raw: 'https://raw.githubusercontent.com/ggshop/scripts/main/uithemer.lua'
+  },
+  // Добавить новый скрипт — скопируй блок выше и вставь сюда со следующим id
+];
+
+let cur=null;
+let user=JSON.parse(localStorage.getItem('gg_user')||'null');
+let purchases=JSON.parse(localStorage.getItem('gg_purchases')||'[]');
+
+function goto(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');if(p==='cabinet')renderCabinet();}
+function updateNav(){if(user){document.getElementById('cab-nav-btn').textContent=user.nick;document.getElementById('auth-nav-btn').style.display='none';}else{document.getElementById('auth-nav-btn').style.display='';document.getElementById('cab-nav-btn').textContent='Кабинет';}}
+function showReg(){document.getElementById('login-box').style.display='none';document.getElementById('reg-box').style.display='block'}
+function showLogin(){document.getElementById('reg-box').style.display='none';document.getElementById('login-box').style.display='block'}
+function doReg(){const nick=document.getElementById('r-nick').value.trim(),email=document.getElementById('r-email').value.trim();if(!nick||!email)return alert('Заполни все поля');user={nick,email};localStorage.setItem('gg_user',JSON.stringify(user));updateNav();goto('shop');}
+function doLogin(){const nick=document.getElementById('li-nick').value.trim(),email=document.getElementById('li-email').value.trim();if(!nick||!email)return alert('Заполни все поля');user={nick,email};localStorage.setItem('gg_user',JSON.stringify(user));updateNav();goto('shop');}
+function filter(cat,btn){document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderGrid(cat);}
+function renderGrid(cat='all'){
+  const g=document.getElementById('grid');g.innerHTML='';
+  const labels={auto:'Авто',visual:'Визуал',combat:'Боёвка'};
+  scripts.filter(s=>cat==='all'||s.cat===cat).forEach(s=>{
+    const d=document.createElement('div');d.className='card';
+    d.innerHTML=`<span class="ctag ${s.cat}">${labels[s.cat]}</span><div class="ctitle">${s.title}</div><div class="cdesc">${s.short}</div><div class="cfoot"><div class="cprice">${s.price} ₽</div><button class="cbtn" onclick="openModal(${s.id})">Подробнее</button></div>`;
+    g.appendChild(d);
+  });
+}
+function openModal(id){
+  cur=scripts.find(s=>s.id===id);if(!cur)return;
+  document.getElementById('m-title').textContent=cur.title;
+  document.getElementById('m-exec').textContent=cur.exec;
+  document.getElementById('m-desc').textContent=cur.desc;
+  document.getElementById('m-price').textContent=cur.price+' ₽';
+  const fl=document.getElementById('m-feats');fl.innerHTML='';
+  cur.feats.forEach(f=>{const li=document.createElement('li');li.textContent=f;fl.appendChild(li);});
+  document.getElementById('m-buy').onclick=()=>doBuy(cur);
+  document.getElementById('overlay').classList.add('open');
+}
+function closeModal(e){if(!e||e.target.id==='overlay')document.getElementById('overlay').classList.remove('open');}
+function doBuy(s){
+  if(!user){closeModal();goto('login');return;}
+  const label='gg_'+s.id+'_'+Date.now();
+  const ok=encodeURIComponent(SITE+'/success?label='+label+'&id='+s.id);
+  const url=`https://yoomoney.ru/quickpay/confirm?receiver=${WALLET}&quickpay-form=button&targets=${encodeURIComponent('GGshop: '+s.title)}&sum=${s.price}&label=${label}&successURL=${ok}`;
+  purchases.push({id:s.id,title:s.title,price:s.price,raw:s.raw,date:new Date().toLocaleDateString('ru')});
+  localStorage.setItem('gg_purchases',JSON.stringify(purchases));
+  window.open(url,'_blank');
+  document.getElementById('overlay').classList.remove('open');
+}
+function renderCabinet(){
+  const c=document.getElementById('cab-content');
+  if(!user){c.innerHTML=`<div class="empty"><p style="font-size:32px;margin-bottom:10px">🔒</p><p>Войдите чтобы увидеть кабинет</p></div>`;return;}
+  let html=`<div class="cab-header"><div class="avatar">${user.nick[0].toUpperCase()}</div><div><div class="cab-name">${user.nick}</div><div class="cab-meta">${user.email}</div></div></div><div class="cab-section-title">МОИ ПОКУПКИ</div>`;
+  if(!purchases.length){html+=`<div class="empty"><p style="font-size:32px;margin-bottom:10px">📦</p><p>Покупок пока нет</p></div>`;}
+  else{purchases.forEach(p=>{html+=`<div class="purchase-card"><div><div class="p-name">${p.title}</div><div class="p-date">${p.date}</div></div><div><div class="p-price">${p.price} ₽</div><button class="copy-btn" onclick="copyRaw('${p.raw}')">Скопировать ссылку</button></div></div>`;});}
+  c.innerHTML=html;
+}
+function copyRaw(url){navigator.clipboard.writeText(url).then(()=>{alert('Скопировано!\n\nВставь в executor:\nloadstring(game:HttpGet("'+url+'"))()');});}
+renderGrid();updateNav();
+</script>
