@@ -139,10 +139,12 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 .copy-btn{font-size:12px;font-weight:500;padding:7px 16px;background:rgba(168,85,247,.15);
   border:1px solid var(--border2);color:var(--acc3);cursor:pointer;border-radius:8px;transition:all .15s;white-space:nowrap}
 .copy-btn:hover{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+
+/* AUTH — только никнейм */
 .auth-wrap{max-width:380px;margin:48px auto;padding:0 24px}
 .auth-box{background:var(--s1);border:1px solid var(--border2);border-radius:18px;padding:30px}
 .auth-title{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;text-align:center;margin-bottom:6px;color:var(--text)}
-.auth-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:24px}
+.auth-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:24px;line-height:1.5}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:12px;font-weight:600;color:var(--dim);margin-bottom:6px}
 .field input{width:100%;padding:11px 14px;background:var(--s2);border:1px solid var(--border2);
@@ -154,42 +156,28 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 .auth-btn:hover{opacity:.9}
 .auth-btn:disabled{opacity:.5;cursor:not-allowed}
 .auth-err{color:#f87171;font-size:12px;text-align:center;margin-top:8px;min-height:16px}
-.auth-ok{color:var(--green);font-size:12px;text-align:center;margin-top:8px;min-height:16px}
-.auth-alt{text-align:center;font-size:13px;color:var(--muted);margin-top:14px}
-.auth-alt a{color:var(--acc3);cursor:pointer}
+.warn-box{background:rgba(168,85,247,.08);border:1px solid var(--border2);border-radius:10px;
+  padding:12px 14px;margin-bottom:18px;font-size:12px;color:var(--dim);line-height:1.6}
+.warn-box strong{color:var(--acc3);display:block;margin-bottom:4px;font-size:13px}
+.code-hint{font-family:'JetBrains Mono',monospace;background:var(--s2);border:1px solid var(--border);
+  border-radius:8px;padding:10px 14px;font-size:12px;color:var(--acc3);margin-top:10px;
+  word-break:break-all;cursor:pointer;transition:border-color .15s}
+.code-hint:hover{border-color:var(--acc)}
+.tab-row{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border2);border-radius:10px;overflow:hidden}
+.tab-btn{flex:1;padding:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;
+  background:transparent;color:var(--muted);transition:all .15s}
+.tab-btn.on{background:var(--acc2);color:#fff}
+
 .toast{position:fixed;bottom:24px;right:24px;background:var(--s2);border:1px solid var(--border2);
   border-radius:12px;padding:14px 20px;font-size:13px;color:var(--text);
   z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:300px;pointer-events:none}
 .toast.show{transform:translateY(0);opacity:1}
 .toast.ok{border-color:var(--green);color:var(--green)}
 .toast.err{border-color:#f87171;color:#f87171}
-.pay-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);
-  display:none;align-items:center;justify-content:center;z-index:300;padding:16px;backdrop-filter:blur(8px)}
-.pay-overlay.open{display:flex}
-.pay-box{background:var(--s2);border:1px solid var(--border2);border-radius:18px;
-  padding:32px;max-width:420px;width:100%;text-align:center}
-.pay-box h3{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:var(--acc3);margin-bottom:10px}
-.pay-box p{font-size:13px;color:var(--dim);line-height:1.6;margin-bottom:24px}
-.pay-link{display:block;width:100%;padding:14px;font-size:14px;font-weight:600;
-  background:linear-gradient(135deg,var(--acc2),var(--pink));color:#fff;
-  border:none;border-radius:10px;cursor:pointer;text-decoration:none;margin-bottom:10px;transition:opacity .15s}
-.pay-link:hover{opacity:.9}
-.pay-cancel{background:none;border:1px solid var(--border2);color:var(--dim);
-  width:100%;padding:10px;border-radius:10px;cursor:pointer;font-size:13px;transition:all .15s}
-.pay-cancel:hover{border-color:var(--pink);color:var(--pink)}
 </style>
 </head>
 <body>
 <div class="toast" id="toast"></div>
-
-<div class="pay-overlay" id="pay-overlay">
-  <div class="pay-box">
-    <h3 id="pay-title">Оплата</h3>
-    <p id="pay-desc">Нажми кнопку ниже чтобы перейти на страницу оплаты ЮМани</p>
-    <a class="pay-link" id="pay-link" target="_blank" href="#">Перейти к оплате →</a>
-    <button class="pay-cancel" onclick="closePayOverlay()">Отмена</button>
-  </div>
-</div>
 
 <header>
   <div class="logo">GGshop</div>
@@ -198,12 +186,13 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
       <button class="lang-btn on" id="btn-ru" onclick="setLang('ru')">RU</button>
       <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
     </div>
-    <button class="nav-btn nav-ghost" id="n-shop" onclick="goto('shop')">Магазин</button>
+    <button class="nav-btn nav-ghost" onclick="goto('shop')" id="n-shop">Магазин</button>
     <button class="nav-btn nav-ghost" id="cab-btn" onclick="cabClick()">Кабинет</button>
     <button class="nav-btn nav-solid" id="auth-btn" onclick="goto('auth')" style="display:none">Войти</button>
   </nav>
 </header>
 
+<!-- SHOP -->
 <div class="page active" id="page-shop">
   <div class="hero">
     <div class="hero-badge">✦ ROBLOX SCRIPTS ✦</div>
@@ -224,35 +213,52 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
   <div class="grid" id="grid"></div>
 </div>
 
+<!-- CABINET -->
 <div class="page" id="page-cabinet">
   <div class="cab-wrap" id="cab-content"></div>
 </div>
 
+<!-- AUTH -->
 <div class="page" id="page-auth">
   <div class="auth-wrap">
-    <div class="auth-box" id="box-login">
-      <div class="auth-title" id="lt">Войти</div>
-      <div class="auth-sub" id="ls">доступ к покупкам</div>
-      <div class="field"><label id="fn-l">Никнейм</label><input id="l-nick" placeholder="твой никнейм"/></div>
-      <div class="field"><label id="fp">Пароль</label><input id="l-pass" type="password" placeholder="••••••••"/></div>
-      <div class="auth-err" id="l-err"></div>
-      <button class="auth-btn" id="l-btn" onclick="doLogin()">Войти</button>
-      <div class="auth-alt" id="la">нет аккаунта? <a onclick="showBox('reg')">Регистрация</a></div>
-    </div>
-    <div class="auth-box" id="box-reg" style="display:none">
-      <div class="auth-title" id="rt">Регистрация</div>
-      <div class="auth-sub" id="rs">создать аккаунт</div>
-      <div class="field"><label id="fn">Никнейм</label><input id="r-nick" placeholder="твой никнейм"/></div>
-      <div class="field"><label id="fe2">Email</label><input id="r-email" type="email" placeholder="email@example.com"/></div>
-      <div class="field"><label id="fp2">Пароль</label><input id="r-pass" type="password" placeholder="минимум 6 символов"/></div>
-      <div class="auth-err" id="r-err"></div>
-      <div class="auth-ok"  id="r-ok"></div>
-      <button class="auth-btn" id="r-btn" onclick="doReg()">Создать аккаунт</button>
-      <div class="auth-alt" id="ra">уже есть аккаунт? <a onclick="showBox('login')">Войти</a></div>
+    <div class="auth-box">
+      <div class="auth-title" id="auth-title">Войти</div>
+
+      <!-- Табы: Новый / Уже есть аккаунт -->
+      <div class="tab-row">
+        <button class="tab-btn on" id="tab-new" onclick="switchTab('new')">Новый</button>
+        <button class="tab-btn" id="tab-existing" onclick="switchTab('existing')">Уже есть</button>
+      </div>
+
+      <!-- НОВЫЙ ПОЛЬЗОВАТЕЛЬ -->
+      <div id="pane-new">
+        <div class="warn-box">
+          <strong id="warn-title">⚠ Сохрани свой код!</strong>
+          <span id="warn-text">После входа тебе выдастся уникальный код. Сохрани его — он нужен чтобы войти снова и увидеть покупки.</span>
+        </div>
+        <div class="field">
+          <label id="lbl-nick">Никнейм</label>
+          <input id="new-nick" placeholder="твой никнейм" maxlength="20"/>
+        </div>
+        <div class="auth-err" id="new-err"></div>
+        <button class="auth-btn" id="new-btn" onclick="doNewUser()">Создать аккаунт</button>
+      </div>
+
+      <!-- СУЩЕСТВУЮЩИЙ ПОЛЬЗОВАТЕЛЬ -->
+      <div id="pane-existing" style="display:none">
+        <div class="field">
+          <label id="lbl-code">Твой код</label>
+          <input id="ex-code" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" style="font-family:'JetBrains Mono',monospace;font-size:12px"/>
+        </div>
+        <div class="auth-err" id="ex-err"></div>
+        <button class="auth-btn" id="ex-btn" onclick="doExistingUser()">Войти по коду</button>
+      </div>
+
     </div>
   </div>
 </div>
 
+<!-- MODAL -->
 <div class="overlay" id="overlay" onclick="overlayClick(event)">
   <div class="modal">
     <div class="mhead">
@@ -270,82 +276,80 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
     <div class="mfoot">
       <div>
         <div class="mfinal-rub" id="m-rub">— ₽</div>
-        <div class="mfinal-usd" id="m-usd">≈ $—</div>
+        <div class="mfinal-usd" id="m-usd">— $</div>
       </div>
-      <button class="buybtn" id="m-buy" onclick="doBuy()">Купить</button>
+      <button class="buybtn" id="m-buy">Купить</button>
     </div>
   </div>
 </div>
 
 <script>
+// ══ CONFIG ══
 const SUPABASE_URL = 'https://guzxxodewipzihypohoc.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1enh4b2Rld2lwemloeXBvaG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDk5NTIsImV4cCI6MjA5MjE4NTk1Mn0.xzyW9NHTa35OBxBdJy8I5JOpmOteGa0Tvg5vPsWOT-E';
-const WALLET   = '4100119480343964';
-const SITE     = 'https://is682573-code.github.io/ggshop.github.io';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1enh4b2Rld2lwemloeXBvaG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUxNzMxMjIsImV4cCI6MjA2MDc0OTEyMn0.4UY8dSe8Bj2R_pSb4iLCJpYXQiOjE3NDUxNzMxMjJ9';
+const WALLET  = '4100119480343964';
+const SITE    = 'https://is682573-code.github.io/ggshop.github.io';
 const USD_RATE = 90;
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// ══ TRANSLATIONS ══
 const T = {
   ru:{
-    shop:'Магазин',cab:'Кабинет',login:'Войти',
+    shop:'Магазин', cab:'Кабинет', login:'Войти',
     hero:'качественные скрипты по доступным ценам',
-    st_scripts:'скриптов',st_support:'поддержка',st_work:'рабочие',
-    f_all:'Все',f_auto:'Авто',f_visual:'Визуал',f_combat:'Боёвка',
-    lt:'Войти',ls:'доступ к покупкам',lb:'Войти',
-    la:'нет аккаунта? ',to_reg:'Регистрация',
-    rt:'Регистрация',rs:'создать аккаунт',rb:'Создать аккаунт',
-    ra:'уже есть аккаунт? ',to_login:'Войти',
-    fe:'Email',fp:'Пароль',fn:'Никнейм',
-    ph_nick:'твой никнейм',ph_pass:'минимум 6 символов',
-    pl_label:'ВЫБЕРИ ПЛАН',buy:'Купить',
-    cab_title:'Мои покупки',empty:'Покупок пока нет',
-    logout:'Выйти',loading:'Загрузка...',
+    st_scripts:'скриптов', st_support:'поддержка', st_work:'рабочие',
+    f_all:'Все', f_auto:'Авто', f_visual:'Визуал', f_combat:'Боёвка',
+    auth_title:'Аккаунт',
+    tab_new:'Новый', tab_ex:'Уже есть',
+    warn_title:'⚠ Сохрани свой код!',
+    warn_text:'После входа тебе выдастся уникальный код. Сохрани его — он нужен чтобы войти снова и увидеть покупки.',
+    lbl_nick:'Никнейм', lbl_code:'Твой код',
+    ph_nick:'твой никнейм', ph_code:'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+    btn_new:'Создать аккаунт', btn_ex:'Войти по коду',
+    pl_label:'ВЫБЕРИ ПЛАН', buy:'Купить',
+    cab_title:'Мои покупки', empty:'Покупок пока нет',
+    logout:'Выйти', loading:'Загрузка...',
     copied:'Скопировано! Вставь в executor.',
-    err_fill:'Заполни все поля',err_short:'Пароль минимум 6 символов',
-    err_nick_taken:'Никнейм уже занят',
-    err_nick_notfound:'Никнейм не найден',
-    err_login:'Неверный никнейм или пароль',
-    ok_reg:'Аккаунт создан! Теперь войди.',
-    tag_auto:'Авто',tag_visual:'Визуал',tag_combat:'Боёвка',
-    details:'Подробнее',from:'от',
-    popular:'популярный',best:'выгодный',
-    pay:'Переходим к оплате...',
-    pay_desc:'Нажми кнопку ниже чтобы перейти на страницу оплаты ЮМани',
-    pay_go:'Перейти к оплате →',pay_cancel:'Отмена',
+    err_fill:'Введи никнейм', err_code:'Введи код',
+    err_not_found:'Код не найден. Проверь правильность.',
+    tag_auto:'Авто', tag_visual:'Визуал', tag_combat:'Боёвка',
+    details:'Подробнее', from:'от',
+    popular:'популярный', best:'выгодный',
+    pay:'Перенаправляем на оплату...',
     locked:'Войдите чтобы увидеть кабинет',
     copy_btn:'Скопировать ссылку',
-    popup_blocked:'Попап заблокирован — нажми кнопку ниже',
+    save_code:'Скопировать код',
+    code_saved:'Код скопирован! Сохрани его в надёжном месте.',
+    your_code:'Твой код для входа (нажми чтобы скопировать):',
   },
   en:{
-    shop:'Shop',cab:'Cabinet',login:'Log in',
+    shop:'Shop', cab:'Cabinet', login:'Log in',
     hero:'quality scripts at affordable prices',
-    st_scripts:'scripts',st_support:'support',st_work:'working',
-    f_all:'All',f_auto:'Auto',f_visual:'Visual',f_combat:'Combat',
-    lt:'Log in',ls:'access your purchases',lb:'Log in',
-    la:"don't have an account? ",to_reg:'Register',
-    rt:'Register',rs:'create account',rb:'Create account',
-    ra:'already have an account? ',to_login:'Log in',
-    fe:'Email',fp:'Password',fn:'Nickname',
-    ph_nick:'your nickname',ph_pass:'at least 6 characters',
-    pl_label:'CHOOSE PLAN',buy:'Buy now',
-    cab_title:'My purchases',empty:'No purchases yet',
-    logout:'Log out',loading:'Loading...',
+    st_scripts:'scripts', st_support:'support', st_work:'working',
+    f_all:'All', f_auto:'Auto', f_visual:'Visual', f_combat:'Combat',
+    auth_title:'Account',
+    tab_new:'New user', tab_ex:'I have a code',
+    warn_title:'⚠ Save your code!',
+    warn_text:'After signing in you will receive a unique code. Save it — you need it to log in again and see your purchases.',
+    lbl_nick:'Nickname', lbl_code:'Your code',
+    ph_nick:'your nickname', ph_code:'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+    btn_new:'Create account', btn_ex:'Log in with code',
+    pl_label:'CHOOSE PLAN', buy:'Buy now',
+    cab_title:'My purchases', empty:'No purchases yet',
+    logout:'Log out', loading:'Loading...',
     copied:'Copied! Paste into executor.',
-    err_fill:'Fill in all fields',err_short:'Password must be 6+ characters',
-    err_nick_taken:'Nickname already taken',
-    err_nick_notfound:'Nickname not found',
-    err_login:'Wrong nickname or password',
-    ok_reg:'Account created! Now log in.',
-    tag_auto:'Auto',tag_visual:'Visual',tag_combat:'Combat',
-    details:'Details',from:'from',
-    popular:'popular',best:'best value',
+    err_fill:'Enter a nickname', err_code:'Enter your code',
+    err_not_found:'Code not found. Check it and try again.',
+    tag_auto:'Auto', tag_visual:'Visual', tag_combat:'Combat',
+    details:'Details', from:'from',
+    popular:'popular', best:'best value',
     pay:'Redirecting to payment...',
-    pay_desc:'Click the button below to go to YooMoney payment page',
-    pay_go:'Go to payment →',pay_cancel:'Cancel',
     locked:'Log in to see your cabinet',
     copy_btn:'Copy link',
-    popup_blocked:'Popup blocked — click the button below',
+    save_code:'Copy code',
+    code_saved:'Code copied! Store it somewhere safe.',
+    your_code:'Your login code (click to copy):',
   }
 };
 
@@ -353,190 +357,249 @@ let lang = localStorage.getItem('gg_lang') || 'ru';
 const t = k => T[lang][k] || k;
 const rubToUsd = r => '$' + (r / USD_RATE).toFixed(2);
 
-function setLang(l){
-  lang=l; localStorage.setItem('gg_lang',l);
-  document.getElementById('btn-ru').classList.toggle('on',l==='ru');
-  document.getElementById('btn-en').classList.toggle('on',l==='en');
-  applyTranslations(); renderGrid(currentCat);
-  if(curScript) renderPlans(); updateNav();
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('gg_lang', l);
+  document.getElementById('btn-ru').classList.toggle('on', l==='ru');
+  document.getElementById('btn-en').classList.toggle('on', l==='en');
+  applyT();
+  renderGrid(currentCat);
+  if(curScript) renderPlans();
+  updateNav();
 }
-
-function applyTranslations(){
-  const ids={
+function applyT() {
+  const map = {
     'n-shop':'shop','hero-sub':'hero',
     'st-scripts':'st_scripts','st-support':'st_support','st-work':'st_work',
     'f-all':'f_all','f-auto':'f_auto','f-visual':'f_visual','f-combat':'f_combat',
-    'lt':'lt','ls':'ls','l-btn':'lb',
-    'rt':'rt','rs':'rs','r-btn':'rb',
-    'fe2':'fe','fp2':'fp','fn':'fn','fn-l':'fn','fp':'fp',
+    'auth-title':'auth_title',
+    'tab-new':'tab_new','tab-existing':'tab_ex',
+    'warn-title':'warn_title','warn-text':'warn_text',
+    'lbl-nick':'lbl_nick','lbl-code':'lbl_code',
+    'new-btn':'btn_new','ex-btn':'btn_ex',
     'pl-label':'pl_label','m-buy':'buy',
+    'auth-btn':'login',
   };
-  for(const [id,key] of Object.entries(ids)){
-    const el=document.getElementById(id); if(el) el.textContent=t(key);
+  for(const [id,key] of Object.entries(map)){
+    const el=document.getElementById(id);
+    if(el) el.textContent=t(key);
   }
-  const la=document.getElementById('la');
-  if(la) la.innerHTML=t('la')+`<a onclick="showBox('reg')">${t('to_reg')}</a>`;
-  const ra=document.getElementById('ra');
-  if(ra) ra.innerHTML=t('ra')+`<a onclick="showBox('login')">${t('to_login')}</a>`;
-  const ln=document.getElementById('l-nick'); if(ln) ln.placeholder=t('ph_nick');
-  const rn=document.getElementById('r-nick'); if(rn) rn.placeholder=t('ph_nick');
-  const rp=document.getElementById('r-pass'); if(rp) rp.placeholder=t('ph_pass');
-  const ab=document.getElementById('auth-btn'); if(ab) ab.textContent=t('login');
+  const nn=document.getElementById('new-nick'); if(nn) nn.placeholder=t('ph_nick');
+  const ec=document.getElementById('ex-code');  if(ec) ec.placeholder=t('ph_code');
 }
 
-// ══ AUTH ══
-let user=null;
+// ══ STATE ══
+let user = null, curScript = null, curPlanIdx = 0, currentCat = 'all';
 
-sb.auth.onAuthStateChange(async(event,session)=>{
-  if(session){
-    try{
-      const {data}=await sb.from('profiles').select('nickname,email').eq('id',session.user.id).single();
-      user={id:session.user.id,email:session.user.email,nick:data?.nickname||session.user.email.split('@')[0]};
-    }catch(e){
-      user={id:session.user.id,email:session.user.email,nick:session.user.email.split('@')[0]};
-    }
-  }else{ user=null; }
+// ══ RESTORE SESSION ══
+// Сессия хранится в localStorage автоматически Supabase
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (session) {
+    const {data} = await sb.from('profiles').select('nickname').eq('id', session.user.id).single();
+    user = { id: session.user.id, nick: data?.nickname || 'user' };
+  } else {
+    user = null;
+  }
   updateNav();
 });
 
-// Регистрация: никнейм + email + пароль
-async function doReg(){
-  const nick=document.getElementById('r-nick').value.trim();
-  const email=document.getElementById('r-email').value.trim();
-  const pass=document.getElementById('r-pass').value;
-  const err=document.getElementById('r-err'),ok=document.getElementById('r-ok');
-  const btn=document.getElementById('r-btn');
-  err.textContent=''; ok.textContent='';
-  if(!nick||!email||!pass){err.textContent=t('err_fill');return;}
-  if(pass.length<6){err.textContent=t('err_short');return;}
+// ══ AUTH: НОВЫЙ ПОЛЬЗОВАТЕЛЬ ══
+async function doNewUser() {
+  const nick = document.getElementById('new-nick').value.trim();
+  const err  = document.getElementById('new-err');
+  const btn  = document.getElementById('new-btn');
+  if (!nick) { err.textContent = t('err_fill'); return; }
+  btn.disabled = true; btn.textContent = '...'; err.textContent = '';
 
-  // Проверяем уникальность никнейма
-  const {data:existing}=await sb.from('profiles').select('id').ilike('nickname',nick).maybeSingle();
-  if(existing){err.textContent=t('err_nick_taken');return;}
+  // Создаём анонимного пользователя
+  const { data, error } = await sb.auth.signInAnonymously();
+  if (error) { err.textContent = error.message; btn.disabled=false; btn.textContent=t('btn_new'); return; }
 
-  btn.disabled=true; btn.textContent='...';
-  const {data,error}=await sb.auth.signUp({email,password:pass});
-  if(error){err.textContent=error.message;btn.disabled=false;btn.textContent=t('rb');return;}
-  if(data.user){
-    await sb.from('profiles').upsert({id:data.user.id,nickname:nick,email:email});
-  }
-  ok.textContent=t('ok_reg');
-  btn.disabled=false; btn.textContent=t('rb');
-  setTimeout(()=>showBox('login'),1500);
+  const uid = data.user.id;
+
+  // Сохраняем никнейм
+  await sb.from('profiles').upsert({ id: uid, nickname: nick });
+
+  user = { id: uid, nick };
+
+  // Показываем код (uid = уникальный идентификатор для входа)
+  showCodeModal(uid, nick);
+  btn.disabled = false; btn.textContent = t('btn_new');
 }
 
-// Логин: никнейм → ищем email → логинимся
-async function doLogin(){
-  const nick=document.getElementById('l-nick').value.trim();
-  const pass=document.getElementById('l-pass').value;
-  const err=document.getElementById('l-err'),btn=document.getElementById('l-btn');
-  err.textContent='';
-  if(!nick||!pass){err.textContent=t('err_fill');return;}
-  btn.disabled=true; btn.textContent='...';
+// ══ AUTH: ВОЙТИ ПО КОДУ ══
+async function doExistingUser() {
+  const code = document.getElementById('ex-code').value.trim();
+  const err  = document.getElementById('ex-err');
+  const btn  = document.getElementById('ex-btn');
+  if (!code) { err.textContent = t('err_code'); return; }
+  btn.disabled = true; btn.textContent = '...'; err.textContent = '';
 
-  // Ищем email по никнейму
-  const {data:profile,error:pErr}=await sb
-    .from('profiles').select('email').ilike('nickname',nick).maybeSingle();
-
-  if(pErr||!profile||!profile.email){
-    err.textContent=t('err_nick_notfound');
-    btn.disabled=false; btn.textContent=t('lb'); return;
+  // Проверяем что такой профиль существует
+  const { data, error } = await sb.from('profiles').select('nickname').eq('id', code).single();
+  if (error || !data) {
+    err.textContent = t('err_not_found');
+    btn.disabled = false; btn.textContent = t('btn_ex');
+    return;
   }
 
-  const {error}=await sb.auth.signInWithPassword({email:profile.email,password:pass});
-  if(error){
-    err.textContent=t('err_login');
-    btn.disabled=false; btn.textContent=t('lb'); return;
-  }
-  btn.disabled=false; btn.textContent=t('lb');
+  // "Входим" — храним локально (анонимный вход без email не имеет JWT по коду,
+  //  поэтому храним id локально и подтягиваем покупки по user_id)
+  user = { id: code, nick: data.nickname };
+  localStorage.setItem('gg_anon', JSON.stringify(user));
+
+  btn.disabled = false; btn.textContent = t('btn_ex');
+  updateNav();
+  goto('shop');
+  toast('👋 ' + data.nickname, 'ok');
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  localStorage.removeItem('gg_anon');
+  user = null;
+  updateNav();
   goto('shop');
 }
 
-async function doLogout(){await sb.auth.signOut();goto('shop');}
-
-function updateNav(){
-  const cb=document.getElementById('cab-btn'),ab=document.getElementById('auth-btn');
-  if(user){cb.textContent=user.nick;ab.style.display='none';}
-  else{cb.textContent=t('cab');ab.style.display='';}
+// ══ ПОКАЗАТЬ КОД ПОСЛЕ РЕГИСТРАЦИИ ══
+function showCodeModal(uid, nick) {
+  // Используем overlay для показа кода
+  document.getElementById('m-title').textContent = nick + ' ✦';
+  document.getElementById('m-img').innerHTML = `<div style="font-size:48px;line-height:1">🎉</div>`;
+  document.getElementById('m-exec').textContent = t('your_code').replace(':','');
+  document.getElementById('m-desc').innerHTML = `<span style="color:var(--text)">${t('warn_text')}</span>`;
+  document.getElementById('m-feats').innerHTML = '';
+  document.getElementById('pl-label').textContent = t('your_code');
+  document.getElementById('m-plans').innerHTML = `
+    <div class="code-hint" onclick="copyCode('${uid}')" style="width:100%;text-align:center;font-size:13px;letter-spacing:.5px">
+      ${uid}
+    </div>`;
+  document.getElementById('m-rub').textContent = '';
+  document.getElementById('m-usd').textContent = '';
+  const buyBtn = document.getElementById('m-buy');
+  buyBtn.textContent = t('save_code');
+  buyBtn.onclick = () => { copyCode(uid); };
+  document.getElementById('overlay').classList.add('open');
+  updateNav();
 }
-function cabClick(){if(user)goto('cabinet');else goto('auth');}
-function goto(p){
+
+function copyCode(uid) {
+  navigator.clipboard.writeText(uid).then(() => {
+    toast(t('code_saved'), 'ok');
+    localStorage.setItem('gg_anon', JSON.stringify(user));
+  });
+}
+
+// ══ RESTORE LOCAL SESSION ══
+(function restoreLocal() {
+  const saved = localStorage.getItem('gg_anon');
+  if (saved) {
+    try { user = JSON.parse(saved); } catch(e) {}
+  }
+})();
+
+function switchTab(tab) {
+  document.getElementById('tab-new').classList.toggle('on', tab==='new');
+  document.getElementById('tab-existing').classList.toggle('on', tab==='existing');
+  document.getElementById('pane-new').style.display      = tab==='new'      ? 'block' : 'none';
+  document.getElementById('pane-existing').style.display = tab==='existing' ? 'block' : 'none';
+}
+
+function updateNav() {
+  const cb=document.getElementById('cab-btn'), ab=document.getElementById('auth-btn');
+  if(user){ cb.textContent=user.nick; ab.style.display='none'; }
+  else    { cb.textContent=t('cab');  ab.style.display=''; }
+}
+function cabClick() { if(user) goto('cabinet'); else goto('auth'); }
+function goto(p) {
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
-  if(p==='cabinet')renderCabinet();
-}
-function showBox(b){
-  document.getElementById('box-login').style.display=b==='login'?'block':'none';
-  document.getElementById('box-reg').style.display=b==='reg'?'block':'none';
+  if(p==='cabinet') renderCabinet();
 }
 
 // ══ SCRIPTS ══
-const SCRIPTS=[
-  {id:1,cat:'auto',emoji:'🚩',img:'',title:'Flag Runner',
-   short:{ru:'AFK-ходилка для тайкунов',en:'AFK walker for tycoons'},
-   desc:{ru:'Ставишь флаги на карте — скрипт идёт по ним сам. Идеально на ночь.',
-         en:'Place flags on the map — the script walks them automatically. Perfect overnight.'},
-   feats:{ru:['Неограниченное кол-во точек','Настройка времени ожидания','Обход зависаний','Работает после респавна'],
-          en:['Unlimited waypoints','Configurable wait time','Hang detection','Works after respawn']},
-   exec:'Xeno / Solara',
-   raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/flagrunner.lua',
-   plans:[{name:{ru:'Навсегда',en:'Forever'},price:50,badge:''}]},
-  {id:2,cat:'visual',emoji:'🌌',img:'',title:'Sky Replacer',
-   short:{ru:'Замена неба в игре',en:'Sky replacement'},
-   desc:{ru:'Меняет стандартное небо Roblox на кастомное. 5 пресетов: ночь, закат, киберпанк.',
-         en:'Replaces the default Roblox sky. 5 presets: night, sunset, cyberpunk.'},
-   feats:{ru:['5 готовых пресетов','Ночь / закат / киберпанк','Без влияния на FPS','Мгновенное переключение'],
-          en:['5 ready presets','Night / sunset / cyberpunk','No FPS impact','Instant switching']},
-   exec:'Any',
-   raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/skyreplacer.lua',
-   plans:[
-     {name:{ru:'7 дней',en:'7 days'},price:59,badge:''},
-     {name:{ru:'30 дней',en:'30 days'},price:249,badge:'popular'},
-     {name:{ru:'Навсегда',en:'Forever'},price:499,badge:'best',
-      sale:{ru:'скидка 200 ₽ (было 699 ₽)',en:'save 200 ₽ (was 699 ₽)'}},
-   ]},
-  {id:3,cat:'visual',emoji:'🌿',img:'',title:'Grass Changer',
-   short:{ru:'Замена травы и текстур',en:'Grass & texture replacement'},
-   desc:{ru:'Кастомные текстуры земли и травы. Несколько текстурных паков в комплекте.',
-         en:'Custom ground and grass textures. Several texture packs included.'},
-   feats:{ru:['Замена травы / песка / камня','Несколько текстурных паков','Лёгкий на FPS','Простая настройка'],
-          en:['Replace grass / sand / stone','Multiple texture packs','Light on FPS','Easy configuration']},
-   exec:'Any',
-   raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/grasschanger.lua',
-   plans:[
-     {name:{ru:'7 дней',en:'7 days'},price:59,badge:''},
-     {name:{ru:'30 дней',en:'30 days'},price:199,badge:'popular'},
-     {name:{ru:'Навсегда',en:'Forever'},price:449,badge:'best'},
-   ]},
-  {id:4,cat:'combat',emoji:'🎯',img:'',title:'AimHelper',
-   short:{ru:'Вспомогательный прицел',en:'Aim assistant'},
-   desc:{ru:'Подсветка хитбоксов и индикаторы дистанции. Лёгкая помощь без автоприцела.',
-         en:'Hitbox highlight and distance indicators. Light assist without auto-aim.'},
-   feats:{ru:['Подсветка хитбокса','Индикатор дистанции','Настройка цвета','Большинство игр'],
-          en:['Hitbox highlight','Distance indicator','Color customization','Most games']},
-   exec:'Xeno / Synapse',
-   raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/aimhelper.lua',
-   plans:[
-     {name:{ru:'7 дней',en:'7 days'},price:59,badge:''},
-     {name:{ru:'30 дней',en:'30 days'},price:199,badge:'popular'},
-     {name:{ru:'Навсегда',en:'Forever'},price:399,badge:'best'},
-   ]},
-  {id:5,cat:'auto',emoji:'⚙️',img:'',title:'Farm Runner',
-   short:{ru:'Авто-фарм ресурсов',en:'Auto resource farmer'},
-   desc:{ru:'Автоматически собирает ресурсы по карте. Подходит для большинства тайкунов.',
-         en:'Automatically collects resources around the map. Works with most tycoons.'},
-   feats:{ru:['Автосбор ресурсов','Петля по маршруту','Пауза / старт','Уведомление о круге'],
-          en:['Auto resource collection','Route loop','Pause / start','Lap notification']},
-   exec:'Xeno / Solara',
-   raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/farmrunner.lua',
-   plans:[
-     {name:{ru:'7 дней',en:'7 days'},price:59,badge:''},
-     {name:{ru:'30 дней',en:'30 days'},price:249,badge:'popular'},
-     {name:{ru:'Навсегда',en:'Forever'},price:499,badge:'best'},
-   ]},
+const SCRIPTS = [
+  {
+    id:1, cat:'auto', emoji:'🚩', img:'',
+    title:'Flag Runner',
+    short:{ru:'AFK-ходилка для тайкунов', en:'AFK walker for tycoons'},
+    desc:{ru:'Ставишь флаги на карте — скрипт идёт по ним сам. Идеально на ночь.',
+          en:'Place flags on the map — the script walks them automatically. Perfect overnight.'},
+    feats:{ru:['Неограниченное кол-во точек','Настройка времени ожидания','Обход зависаний','Работает после респавна'],
+           en:['Unlimited waypoints','Configurable wait time','Hang detection','Works after respawn']},
+    exec:'Xeno / Solara',
+    raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/flagrunner.lua',
+    plans:[
+      {name:{ru:'Навсегда',en:'Forever'}, price:50, badge:''},
+    ]
+  },
+  {
+    id:2, cat:'visual', emoji:'🌌', img:'',
+    title:'Sky Replacer',
+    short:{ru:'Замена неба в игре', en:'Sky replacement'},
+    desc:{ru:'Меняет стандартное небо Roblox на кастомное. 5 пресетов: ночь, закат, киберпанк.',
+          en:'Replaces the default Roblox sky. 5 presets: night, sunset, cyberpunk.'},
+    feats:{ru:['5 готовых пресетов','Ночь / закат / киберпанк','Без влияния на FPS','Мгновенное переключение'],
+           en:['5 ready presets','Night / sunset / cyberpunk','No FPS impact','Instant switching']},
+    exec:'Any',
+    raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/skyreplacer.lua',
+    plans:[
+      {name:{ru:'7 дней',en:'7 days'},    price:59,  badge:''},
+      {name:{ru:'30 дней',en:'30 days'},  price:249, badge:'popular'},
+      {name:{ru:'Навсегда',en:'Forever'}, price:499, badge:'best',
+       sale:{ru:'скидка 200 ₽ (было 699 ₽)',en:'save 200 ₽ (was 699 ₽)'}},
+    ]
+  },
+  {
+    id:3, cat:'visual', emoji:'🌿', img:'',
+    title:'Grass Changer',
+    short:{ru:'Замена травы и текстур', en:'Grass & texture replacement'},
+    desc:{ru:'Кастомные текстуры земли и травы. Несколько текстурных паков в комплекте.',
+          en:'Custom ground and grass textures. Several texture packs included.'},
+    feats:{ru:['Замена травы / песка / камня','Несколько текстурных паков','Лёгкий на FPS','Простая настройка'],
+           en:['Replace grass / sand / stone','Multiple texture packs','Light on FPS','Easy configuration']},
+    exec:'Any',
+    raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/grasschanger.lua',
+    plans:[
+      {name:{ru:'7 дней',en:'7 days'},    price:59,  badge:''},
+      {name:{ru:'30 дней',en:'30 days'},  price:199, badge:'popular'},
+      {name:{ru:'Навсегда',en:'Forever'}, price:449, badge:'best'},
+    ]
+  },
+  {
+    id:4, cat:'combat', emoji:'🎯', img:'',
+    title:'AimHelper',
+    short:{ru:'Вспомогательный прицел', en:'Aim assistant'},
+    desc:{ru:'Подсветка хитбоксов и индикаторы дистанции. Лёгкая помощь без автоприцела.',
+          en:'Hitbox highlight and distance indicators. Light assist without auto-aim.'},
+    feats:{ru:['Подсветка хитбокса','Индикатор дистанции','Настройка цвета','Большинство игр'],
+           en:['Hitbox highlight','Distance indicator','Color customization','Most games']},
+    exec:'Xeno / Synapse',
+    raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/aimhelper.lua',
+    plans:[
+      {name:{ru:'7 дней',en:'7 days'},    price:59,  badge:''},
+      {name:{ru:'30 дней',en:'30 days'},  price:199, badge:'popular'},
+      {name:{ru:'Навсегда',en:'Forever'}, price:399, badge:'best'},
+    ]
+  },
+  {
+    id:5, cat:'auto', emoji:'⚙️', img:'',
+    title:'Farm Runner',
+    short:{ru:'Авто-фарм ресурсов', en:'Auto resource farmer'},
+    desc:{ru:'Автоматически собирает ресурсы по карте. Подходит для большинства тайкунов.',
+          en:'Automatically collects resources around the map. Works with most tycoons.'},
+    feats:{ru:['Автосбор ресурсов','Петля по маршруту','Пауза / старт','Уведомление о круге'],
+           en:['Auto resource collection','Route loop','Pause / start','Lap notification']},
+    exec:'Xeno / Solara',
+    raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/farmrunner.lua',
+    plans:[
+      {name:{ru:'7 дней',en:'7 days'},    price:59,  badge:''},
+      {name:{ru:'30 дней',en:'30 days'},  price:249, badge:'popular'},
+      {name:{ru:'Навсегда',en:'Forever'}, price:499, badge:'best'},
+    ]
+  },
 ];
-
-let curScript=null,curPlanIdx=0,currentCat='all';
 
 function filter(cat,btn){
   document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
@@ -546,25 +609,32 @@ function renderGrid(cat='all'){
   const g=document.getElementById('grid'); g.innerHTML='';
   SCRIPTS.filter(s=>cat==='all'||s.cat===cat).forEach(s=>{
     const prices=s.plans.map(p=>p.price);
-    const minP=Math.min(...prices),maxP=Math.max(...prices);
-    const priceStr=minP===maxP?`${minP} ₽`:`${t('from')} ${minP} ₽`;
-    const usdStr=minP===maxP?rubToUsd(minP):`${rubToUsd(minP)} – ${rubToUsd(maxP)}`;
-    const imgHtml=s.img?`<div class="card-img"><img src="${s.img}" alt="${s.title}" loading="lazy"/></div>`
-                       :`<div class="card-img">${s.emoji}</div>`;
+    const minP=Math.min(...prices), maxP=Math.max(...prices);
+    const priceStr = minP===maxP ? `${minP} ₽` : `${t('from')} ${minP} ₽`;
+    const usdStr   = minP===maxP ? rubToUsd(minP) : `${rubToUsd(minP)} – ${rubToUsd(maxP)}`;
+    const imgHtml  = s.img
+      ? `<div class="card-img"><img src="${s.img}" alt="${s.title}" loading="lazy"/></div>`
+      : `<div class="card-img">${s.emoji}</div>`;
     const d=document.createElement('div'); d.className='card';
-    d.innerHTML=`${imgHtml}<div class="card-body">
-      <span class="ctag ${s.cat}">${t('tag_'+s.cat)}</span>
-      <div class="ctitle">${s.title}</div>
-      <div class="cdesc">${s.short[lang]}</div>
-      <div class="cfoot">
-        <div><div class="cprice">${priceStr}</div><div class="cprice-usd">${usdStr}</div></div>
-        <button class="cbtn" onclick="openModal(${s.id})">${t('details')}</button>
-      </div></div>`;
+    d.innerHTML=`${imgHtml}
+      <div class="card-body">
+        <span class="ctag ${s.cat}">${t('tag_'+s.cat)}</span>
+        <div class="ctitle">${s.title}</div>
+        <div class="cdesc">${s.short[lang]}</div>
+        <div class="cfoot">
+          <div>
+            <div class="cprice">${priceStr}</div>
+            <div class="cprice-usd">${usdStr}</div>
+          </div>
+          <button class="cbtn" onclick="openModal(${s.id})">${t('details')}</button>
+        </div>
+      </div>`;
     g.appendChild(d);
   });
 }
+
 function openModal(id){
-  curScript=SCRIPTS.find(s=>s.id===id); if(!curScript)return;
+  curScript=SCRIPTS.find(s=>s.id===id); if(!curScript) return;
   const defIdx=curScript.plans.findIndex(p=>p.badge==='popular');
   curPlanIdx=defIdx>=0?defIdx:0;
   document.getElementById('m-title').textContent=curScript.title;
@@ -574,7 +644,9 @@ function openModal(id){
   mi.innerHTML=curScript.img?`<img src="${curScript.img}" alt="${curScript.title}"/>`:`${curScript.emoji}`;
   const fl=document.getElementById('m-feats'); fl.innerHTML='';
   curScript.feats[lang].forEach(f=>{const li=document.createElement('li');li.textContent=f;fl.appendChild(li);});
+  document.getElementById('pl-label').textContent=t('pl_label');
   document.getElementById('m-buy').textContent=t('buy');
+  document.getElementById('m-buy').onclick=()=>doBuy();
   renderPlans();
   document.getElementById('overlay').classList.add('open');
 }
@@ -587,7 +659,8 @@ function renderPlans(){
     if(p.badge==='popular') badge=`<div class="plan-badge">${t('popular')}</div>`;
     if(p.badge==='best')    badge=`<div class="plan-badge">${t('best')}</div>`;
     const sale=p.sale?`<div class="plan-sale">${p.sale[lang]}</div>`:'';
-    d.innerHTML=`${badge}<div class="plan-name">${p.name[lang]}</div>
+    d.innerHTML=`${badge}
+      <div class="plan-name">${p.name[lang]}</div>
       <div class="plan-rub">${p.price}<span style="font-size:12px;color:var(--muted)"> ₽</span></div>
       <div class="plan-usd">${rubToUsd(p.price)}</div>${sale}`;
     d.onclick=()=>{curPlanIdx=i;renderPlans();};
@@ -599,57 +672,32 @@ function renderPlans(){
 }
 function closeModal(){document.getElementById('overlay').classList.remove('open');}
 function overlayClick(e){if(e.target.id==='overlay')closeModal();}
-function closePayOverlay(){document.getElementById('pay-overlay').classList.remove('open');}
 
-// ══ ГЛАВНЫЙ ФИК: синхронный window.open ══
-function doBuy(){
+async function doBuy(){
   if(!user){closeModal();goto('auth');return;}
   const plan=curScript.plans[curPlanIdx];
   const label='gg_'+curScript.id+'_'+Date.now();
-  const successUrl=SITE+'/success.html?sid='+curScript.id
-    +'&plan='+encodeURIComponent(plan.name[lang])+'&label='+label;
-  const url='https://yoomoney.ru/quickpay/confirm'
-    +'?receiver='+WALLET
-    +'&quickpay-form=button'
-    +'&targets='+encodeURIComponent('GGshop: '+curScript.title+' ('+plan.name[lang]+')')
-    +'&sum='+plan.price
-    +'&label='+label
-    +'&successURL='+encodeURIComponent(successUrl);
-
-  // ✅ СИНХРОННО до любых await — браузер не заблокирует
-  const win=window.open(url,'_blank');
-  closeModal();
-
-  if(win){
-    toast(t('pay'),'ok');
-  }else{
-    // Fallback: показываем кнопку на сайте
-    document.getElementById('pay-title').textContent=curScript.title+' — '+plan.price+' ₽';
-    document.getElementById('pay-desc').textContent=t('pay_desc');
-    document.getElementById('pay-link').href=url;
-    document.getElementById('pay-link').textContent=t('pay_go');
-    document.getElementById('pay-overlay').classList.add('open');
-    toast(t('popup_blocked'),'err');
-  }
-
-  // Сохраняем в БД асинхронно после открытия окна
-  sb.from('purchases').insert({
-    user_id:user.id,script_id:curScript.id,
-    script_title:curScript.title,plan_name:plan.name[lang],
-    price_rub:plan.price,raw_url:curScript.raw,label,paid:false
+  const successUrl=SITE+'/success.html?sid='+curScript.id+'&plan='+encodeURIComponent(plan.name[lang])+'&label='+label;
+  const url=`https://yoomoney.ru/quickpay/confirm?receiver=${WALLET}&quickpay-form=button&targets=${encodeURIComponent('GGshop: '+curScript.title+' ('+plan.name[lang]+')')}&sum=${plan.price}&label=${label}&successURL=${encodeURIComponent(successUrl)}`;
+  await sb.from('purchases').insert({
+    user_id:user.id, script_id:curScript.id,
+    script_title:curScript.title, plan_name:plan.name[lang],
+    price_rub:plan.price, raw_url:curScript.raw, label, paid:false
   });
+  window.open(url,'_blank');
+  closeModal();
+  toast(t('pay'),'ok');
 }
 
 async function renderCabinet(){
   const c=document.getElementById('cab-content');
   if(!user){
-    c.innerHTML=`<div class="empty" style="padding:60px 28px">
-      <p style="font-size:36px;margin-bottom:12px">🔒</p><p>${t('locked')}</p></div>`;
+    c.innerHTML=`<div class="empty" style="padding:60px 28px"><p style="font-size:36px;margin-bottom:12px">🔒</p><p>${t('locked')}</p></div>`;
     return;
   }
   c.innerHTML=`<div class="cab-header">
     <div class="avatar">${user.nick[0].toUpperCase()}</div>
-    <div><div class="cab-name">${user.nick}</div><div class="cab-meta">${user.email}</div></div>
+    <div><div class="cab-name">${user.nick}</div><div class="cab-meta">ID: ${user.id.slice(0,8)}...</div></div>
     <button class="cab-logout" onclick="doLogout()">${t('logout')}</button>
   </div>
   <div class="section-title">${t('cab_title')}</div>
@@ -678,13 +726,12 @@ function copyRaw(url){
 function toast(msg,type=''){
   const el=document.getElementById('toast');
   el.textContent=msg; el.className='toast show '+(type||'');
-  setTimeout(()=>el.classList.remove('show'),3500);
+  setTimeout(()=>el.classList.remove('show'),3000);
 }
 
-// Также нужно выполнить в Supabase SQL Editor:
-// alter table profiles add column if not exists email text;
-
+// ══ INIT ══
 setLang(lang);
+updateNav();
 renderGrid();
 </script>
 </body>
