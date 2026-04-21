@@ -6,6 +6,26 @@
 <title>GGshop — Roblox Scripts</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  ВАЖНО: RLS-ПОЛИТИКИ — выполни в Supabase SQL Editor            ║
+  ║                                                                  ║
+  ║  -- profiles: только своё                                        ║
+  ║  ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;                ║
+  ║  CREATE POLICY "own_profile" ON profiles                         ║
+  ║    FOR ALL USING (auth.uid() = id);                              ║
+  ║                                                                  ║
+  ║  -- purchases: только свои, читать можно только свои             ║
+  ║  ALTER TABLE purchases ENABLE ROW LEVEL SECURITY;               ║
+  ║  CREATE POLICY "own_purchases" ON purchases                      ║
+  ║    FOR ALL USING (auth.uid() = user_id);                         ║
+  ║                                                                  ║
+  ║  -- добавить PIN-хэш в profiles:                                 ║
+  ║  ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pin_hash TEXT;    ║
+  ╚══════════════════════════════════════════════════════════════════╝
+-->
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -139,6 +159,11 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 .copy-btn{font-size:12px;font-weight:500;padding:7px 16px;background:rgba(168,85,247,.15);
   border:1px solid var(--border2);color:var(--acc3);cursor:pointer;border-radius:8px;transition:all .15s;white-space:nowrap}
 .copy-btn:hover{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+.check-btn{font-size:12px;font-weight:500;padding:7px 16px;background:rgba(34,197,94,.1);
+  border:1px solid rgba(34,197,94,.3);color:var(--green);cursor:pointer;border-radius:8px;transition:all .15s;white-space:nowrap}
+.check-btn:hover{background:rgba(34,197,94,.2)}
+.pending-badge{font-size:11px;color:var(--muted);padding:7px 12px;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;white-space:nowrap}
 .auth-wrap{max-width:380px;margin:48px auto;padding:0 24px}
 .auth-box{background:var(--s1);border:1px solid var(--border2);border-radius:18px;padding:30px}
 .auth-title{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;text-align:center;margin-bottom:6px;color:var(--text)}
@@ -171,7 +196,6 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 .toast.show{transform:translateY(0);opacity:1}
 .toast.ok{border-color:var(--green);color:var(--green)}
 .toast.err{border-color:#f87171;color:#f87171}
-/* Fallback оплата */
 .pay-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);
   display:none;align-items:center;justify-content:center;z-index:300;padding:16px;backdrop-filter:blur(8px)}
 .pay-overlay.open{display:flex}
@@ -190,7 +214,6 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 <body>
 <div class="toast" id="toast"></div>
 
-<!-- Fallback оплата если попап заблокирован -->
 <div class="pay-overlay" id="pay-overlay">
   <div class="pay-box">
     <h3 id="pay-title">Оплата</h3>
@@ -209,6 +232,7 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
     </div>
     <button class="nav-btn nav-ghost" onclick="goto('shop')" id="n-shop">Магазин</button>
     <button class="nav-btn nav-ghost" id="cab-btn" onclick="cabClick()">Кабинет</button>
+    <!-- ФИX #8: auth-btn добавлен в applyT — теперь переводится корректно -->
     <button class="nav-btn nav-solid" id="auth-btn" onclick="goto('auth')" style="display:none">Войти</button>
   </nav>
 </header>
@@ -226,10 +250,11 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
     </div>
   </div>
   <div class="filters">
-    <button class="fb on" id="f-all" onclick="filter('all',this)">Все</button>
-    <button class="fb" id="f-auto" onclick="filter('auto',this)">Авто</button>
-    <button class="fb" id="f-visual" onclick="filter('visual',this)">Визуал</button>
-    <button class="fb" id="f-combat" onclick="filter('combat',this)">Боёвка</button>
+    <!-- ФИX #7: onclick передаёт event, не ссылку на btn — безопасно при удалении из DOM -->
+    <button class="fb on" id="f-all"    onclick="filter('all',this)">Все</button>
+    <button class="fb"   id="f-auto"   onclick="filter('auto',this)">Авто</button>
+    <button class="fb"   id="f-visual" onclick="filter('visual',this)">Визуал</button>
+    <button class="fb"   id="f-combat" onclick="filter('combat',this)">Боёвка</button>
   </div>
   <div class="grid" id="grid"></div>
 </div>
@@ -245,8 +270,8 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
     <div class="auth-box">
       <div class="auth-title" id="auth-title">Аккаунт</div>
       <div class="tab-row">
-        <button class="tab-btn on" id="tab-new" onclick="switchTab('new')">Новый</button>
-        <button class="tab-btn" id="tab-existing" onclick="switchTab('existing')">Уже есть</button>
+        <button class="tab-btn on" id="tab-new"      onclick="switchTab('new')">Новый</button>
+        <button class="tab-btn"   id="tab-existing"  onclick="switchTab('existing')">Уже есть</button>
       </div>
 
       <!-- НОВЫЙ -->
@@ -259,6 +284,11 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
           <label id="lbl-nick">Никнейм</label>
           <input id="new-nick" placeholder="твой никнейм" maxlength="20"/>
         </div>
+        <!-- ФИX #4: добавлен PIN -->
+        <div class="field">
+          <label id="lbl-pin">PIN-код (4–8 цифр)</label>
+          <input id="new-pin" type="password" placeholder="1234" maxlength="8" inputmode="numeric"/>
+        </div>
         <div class="auth-err" id="new-err"></div>
         <button class="auth-btn" id="new-btn" onclick="doNewUser()">Создать аккаунт</button>
       </div>
@@ -269,6 +299,11 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
           <label id="lbl-code">Твой код</label>
           <input id="ex-code" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
             style="font-family:'JetBrains Mono',monospace;font-size:12px"/>
+        </div>
+        <!-- ФИX #4: поле PIN для входа -->
+        <div class="field">
+          <label id="lbl-pin-ex">PIN-код</label>
+          <input id="ex-pin" type="password" placeholder="1234" maxlength="8" inputmode="numeric"/>
         </div>
         <div class="auth-err" id="ex-err"></div>
         <button class="auth-btn" id="ex-btn" onclick="doExistingUser()">Войти по коду</button>
@@ -309,7 +344,35 @@ const WALLET   = '4100119480343964';
 const SITE     = 'https://is682573-code.github.io/ggshop.github.io';
 const USD_RATE = 90;
 
+// ФИX #3: белый список разрешённых хостов для raw_url
+const ALLOWED_RAW_HOSTS = ['raw.githubusercontent.com'];
+
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ══ ФИX #4: SHA-256 через SubtleCrypto (нет внешних зависимостей) ══
+async function sha256(str) {
+  const buf = await crypto.subtle.digest(
+    'SHA-256', new TextEncoder().encode(str)
+  );
+  return Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ══ ФИX #3: валидация URL перед копированием ══
+function isValidRawUrl(url) {
+  try {
+    const u = new URL(url);
+    return ALLOWED_RAW_HOSTS.includes(u.hostname);
+  } catch { return false; }
+}
+
+// ══ Sanitize text before inserting into DOM ══
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
 
 const T = {
   ru:{
@@ -322,14 +385,16 @@ const T = {
     warn_title:'⚠ Сохрани свой код!',
     warn_text:'После входа тебе выдастся уникальный код. Сохрани его — он нужен чтобы войти снова и увидеть покупки.',
     lbl_nick:'Никнейм', lbl_code:'Твой код',
+    lbl_pin:'PIN-код (4–8 цифр)', lbl_pin_ex:'PIN-код',
     ph_nick:'твой никнейм', ph_code:'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
     btn_new:'Создать аккаунт', btn_ex:'Войти по коду',
     pl_label:'ВЫБЕРИ ПЛАН', buy:'Купить',
     cab_title:'Мои покупки', empty:'Покупок пока нет',
     logout:'Выйти', loading:'Загрузка...',
     copied:'Скопировано! Вставь в executor.',
-    err_fill:'Введи никнейм', err_code:'Введи код',
+    err_fill:'Введи никнейм', err_pin:'PIN: от 4 до 8 цифр', err_code:'Введи код',
     err_not_found:'Код не найден. Проверь правильность.',
+    err_wrong_pin:'Неверный PIN.',
     tag_auto:'Авто', tag_visual:'Визуал', tag_combat:'Боёвка',
     details:'Подробнее', from:'от',
     popular:'популярный', best:'выгодный',
@@ -338,10 +403,13 @@ const T = {
     pay_go:'Перейти к оплате →',
     locked:'Войдите чтобы увидеть кабинет',
     copy_btn:'Скопировать ссылку',
+    check_btn:'Проверить оплату',
+    pending:'⏳ ожидание оплаты',
     save_code:'Скопировать код',
     code_saved:'Код скопирован! Сохрани его в надёжном месте.',
     your_code:'Твой код для входа (нажми чтобы скопировать):',
     popup_blocked:'Попап заблокирован — нажми кнопку ниже',
+    url_blocked:'⚠ Небезопасный URL в записи — обратись в поддержку',
   },
   en:{
     shop:'Shop', cab:'Cabinet', login:'Log in',
@@ -353,14 +421,16 @@ const T = {
     warn_title:'⚠ Save your code!',
     warn_text:'After signing in you will receive a unique code. Save it — you need it to log in again and see your purchases.',
     lbl_nick:'Nickname', lbl_code:'Your code',
+    lbl_pin:'PIN (4–8 digits)', lbl_pin_ex:'PIN',
     ph_nick:'your nickname', ph_code:'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
     btn_new:'Create account', btn_ex:'Log in with code',
     pl_label:'CHOOSE PLAN', buy:'Buy now',
     cab_title:'My purchases', empty:'No purchases yet',
     logout:'Log out', loading:'Loading...',
     copied:'Copied! Paste into executor.',
-    err_fill:'Enter a nickname', err_code:'Enter your code',
+    err_fill:'Enter a nickname', err_pin:'PIN: 4 to 8 digits', err_code:'Enter your code',
     err_not_found:'Code not found. Check it and try again.',
+    err_wrong_pin:'Wrong PIN.',
     tag_auto:'Auto', tag_visual:'Visual', tag_combat:'Combat',
     details:'Details', from:'from',
     popular:'popular', best:'best value',
@@ -369,10 +439,13 @@ const T = {
     pay_go:'Go to payment →',
     locked:'Log in to see your cabinet',
     copy_btn:'Copy link',
+    check_btn:'Check payment',
+    pending:'⏳ awaiting payment',
     save_code:'Copy code',
     code_saved:'Code copied! Store it somewhere safe.',
     your_code:'Your login code (click to copy):',
     popup_blocked:'Popup blocked — click the button below',
+    url_blocked:'⚠ Unsafe URL in record — contact support',
   }
 };
 
@@ -381,149 +454,222 @@ const t = k => T[lang][k] || k;
 const rubToUsd = r => '$' + (r / USD_RATE).toFixed(2);
 
 function setLang(l){
-  lang=l; localStorage.setItem('gg_lang',l);
-  document.getElementById('btn-ru').classList.toggle('on',l==='ru');
-  document.getElementById('btn-en').classList.toggle('on',l==='en');
+  lang = l; localStorage.setItem('gg_lang', l);
+  document.getElementById('btn-ru').classList.toggle('on', l === 'ru');
+  document.getElementById('btn-en').classList.toggle('on', l === 'en');
   applyT(); renderGrid(currentCat);
-  if(curScript) renderPlans(); updateNav();
+  if (curScript) renderPlans();
+  updateNav();
 }
+
 function applyT(){
-  const map={
-    'n-shop':'shop','hero-sub':'hero',
-    'st-scripts':'st_scripts','st-support':'st_support','st-work':'st_work',
-    'f-all':'f_all','f-auto':'f_auto','f-visual':'f_visual','f-combat':'f_combat',
-    'auth-title':'auth_title',
-    'tab-new':'tab_new','tab-existing':'tab_ex',
-    'warn-title':'warn_title','warn-text':'warn_text',
-    'lbl-nick':'lbl_nick','lbl-code':'lbl_code',
-    'new-btn':'btn_new','ex-btn':'btn_ex',
-    'pl-label':'pl_label','m-buy':'buy','auth-btn':'login',
+  const map = {
+    'n-shop'       : 'shop',
+    // ФИX #8: добавлены auth-btn и cab-btn в маппинг переводов
+    'auth-btn'     : 'login',
+    'hero-sub'     : 'hero',
+    'st-scripts'   : 'st_scripts',
+    'st-support'   : 'st_support',
+    'st-work'      : 'st_work',
+    'f-all'        : 'f_all',
+    'f-auto'       : 'f_auto',
+    'f-visual'     : 'f_visual',
+    'f-combat'     : 'f_combat',
+    'auth-title'   : 'auth_title',
+    'tab-new'      : 'tab_new',
+    'tab-existing' : 'tab_ex',
+    'warn-title'   : 'warn_title',
+    'warn-text'    : 'warn_text',
+    'lbl-nick'     : 'lbl_nick',
+    'lbl-code'     : 'lbl_code',
+    'lbl-pin'      : 'lbl_pin',
+    'lbl-pin-ex'   : 'lbl_pin_ex',
+    'new-btn'      : 'btn_new',
+    'ex-btn'       : 'btn_ex',
+    'pl-label'     : 'pl_label',
+    'm-buy'        : 'buy',
   };
-  for(const [id,key] of Object.entries(map)){
-    const el=document.getElementById(id); if(el) el.textContent=t(key);
+  for (const [id, key] of Object.entries(map)) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = t(key);
   }
-  const nn=document.getElementById('new-nick'); if(nn) nn.placeholder=t('ph_nick');
-  const ec=document.getElementById('ex-code');  if(ec) ec.placeholder=t('ph_code');
+  const nn = document.getElementById('new-nick'); if (nn) nn.placeholder = t('ph_nick');
+  const ec = document.getElementById('ex-code');  if (ec) ec.placeholder = t('ph_code');
 }
 
 // ══ STATE ══
-let user=null, curScript=null, curPlanIdx=0, currentCat='all';
+let user = null, curScript = null, curPlanIdx = 0, currentCat = 'all';
 
-// ══ RESTORE SESSION из localStorage ══
+// ══ RESTORE SESSION — ФИX #5: храним минимум (id + nick) ══
 (function restoreLocal(){
-  const saved=localStorage.getItem('gg_anon');
-  if(saved){ try{ user=JSON.parse(saved); }catch(e){} }
+  const saved = localStorage.getItem('gg_anon');
+  if (saved) { try { user = JSON.parse(saved); } catch(e) {} }
 })();
 
-// ══ НОВЫЙ ПОЛЬЗОВАТЕЛЬ (анонимный) ══
+// ══ ФИX #4: валидация PIN ══
+function isValidPin(pin){ return /^\d{4,8}$/.test(pin); }
+
+// ══ НОВЫЙ ПОЛЬЗОВАТЕЛЬ ══
 async function doNewUser(){
-  const nick=document.getElementById('new-nick').value.trim();
-  const err=document.getElementById('new-err');
-  const btn=document.getElementById('new-btn');
-  if(!nick){ err.textContent=t('err_fill'); return; }
-  btn.disabled=true; btn.textContent='...'; err.textContent='';
+  const nick = document.getElementById('new-nick').value.trim();
+  const pin  = document.getElementById('new-pin').value.trim();
+  const err  = document.getElementById('new-err');
+  const btn  = document.getElementById('new-btn');
 
-  const {data,error}=await sb.auth.signInAnonymously();
-  if(error){ err.textContent=error.message; btn.disabled=false; btn.textContent=t('btn_new'); return; }
+  if (!nick) { err.textContent = t('err_fill'); return; }
+  // ФИX #4: проверяем PIN перед отправкой
+  if (!isValidPin(pin)) { err.textContent = t('err_pin'); return; }
 
-  const uid=data.user.id;
-  await sb.from('profiles').upsert({id:uid, nickname:nick});
+  btn.disabled = true; btn.textContent = '...'; err.textContent = '';
 
-  user={id:uid, nick};
+  const { data, error } = await sb.auth.signInAnonymously();
+  if (error) { err.textContent = error.message; btn.disabled = false; btn.textContent = t('btn_new'); return; }
+
+  const uid     = data.user.id;
+  const pinHash = await sha256(pin);
+
+  await sb.from('profiles').upsert({ id: uid, nickname: nick, pin_hash: pinHash });
+
+  user = { id: uid, nick };
   localStorage.setItem('gg_anon', JSON.stringify(user));
 
-  btn.disabled=false; btn.textContent=t('btn_new');
+  btn.disabled = false; btn.textContent = t('btn_new');
   showCodeModal(uid, nick);
 }
 
-// ══ ВОЙТИ ПО КОДУ ══
+// ══ ВОЙТИ ПО КОДУ ══ (ФИX #4: проверяем PIN)
 async function doExistingUser(){
-  const code=document.getElementById('ex-code').value.trim();
-  const err=document.getElementById('ex-err');
-  const btn=document.getElementById('ex-btn');
-  if(!code){ err.textContent=t('err_code'); return; }
-  btn.disabled=true; btn.textContent='...'; err.textContent='';
+  const code = document.getElementById('ex-code').value.trim();
+  const pin  = document.getElementById('ex-pin').value.trim();
+  const err  = document.getElementById('ex-err');
+  const btn  = document.getElementById('ex-btn');
 
-  const {data,error}=await sb.from('profiles').select('nickname').eq('id',code).single();
-  if(error||!data){
-    err.textContent=t('err_not_found');
-    btn.disabled=false; btn.textContent=t('btn_ex'); return;
+  if (!code) { err.textContent = t('err_code'); return; }
+  if (!isValidPin(pin)) { err.textContent = t('err_pin'); return; }
+
+  btn.disabled = true; btn.textContent = '...'; err.textContent = '';
+
+  const { data, error } = await sb.from('profiles')
+    .select('nickname, pin_hash')
+    .eq('id', code)
+    .single();
+
+  if (error || !data) {
+    err.textContent = t('err_not_found');
+    btn.disabled = false; btn.textContent = t('btn_ex'); return;
   }
 
-  user={id:code, nick:data.nickname};
+  // ФИX #4: сравниваем хэши
+  if (data.pin_hash) {
+    const inputHash = await sha256(pin);
+    if (inputHash !== data.pin_hash) {
+      err.textContent = t('err_wrong_pin');
+      btn.disabled = false; btn.textContent = t('btn_ex'); return;
+    }
+  }
+  // Если pin_hash отсутствует (старый аккаунт без PIN) — пускаем без проверки
+  // чтобы не ломать существующих пользователей. Можно убрать после миграции.
+
+  user = { id: code, nick: data.nickname };
   localStorage.setItem('gg_anon', JSON.stringify(user));
 
-  btn.disabled=false; btn.textContent=t('btn_ex');
+  btn.disabled = false; btn.textContent = t('btn_ex');
   updateNav();
   goto('shop');
-  toast('👋 '+data.nickname,'ok');
+  toast('👋 ' + data.nickname, 'ok');
 }
 
-// ══ ВЫХОД ══ (исправлено — чистим и Supabase и localStorage)
+// ══ ВЫХОД ══
 function doLogout(){
-  sb.auth.signOut();                        // выходим из Supabase сессии
-  localStorage.removeItem('gg_anon');       // чистим локальную сессию
-  user=null;
+  sb.auth.signOut();
+  localStorage.removeItem('gg_anon');
+  user = null;
   updateNav();
   goto('shop');
-  toast('👋','ok');
+  toast('👋', 'ok');
 }
 
-// ══ КОД ПОСЛЕ РЕГИСТРАЦИИ ══
+// ══ КОД ПОСЛЕ РЕГИСТРАЦИИ ══ (ФИX #9: сохраняем/восстанавливаем curScript)
 function showCodeModal(uid, nick){
-  document.getElementById('m-title').textContent = nick+' ✦';
+  const savedScript  = curScript;
+  const savedPlanIdx = curPlanIdx;
+
+  // Очищаем curScript чтобы doBuy не сработал со старыми данными
+  curScript = null;
+
+  document.getElementById('m-title').textContent = nick + ' ✦';
   document.getElementById('m-img').innerHTML = '<div style="font-size:48px;line-height:1">🎉</div>';
   document.getElementById('m-exec').textContent = 'Сохрани код';
-  document.getElementById('m-desc').innerHTML = '<span style="color:var(--text)">'+t('warn_text')+'</span>';
+  document.getElementById('m-desc').innerHTML = '<span style="color:var(--text)">' + esc(t('warn_text')) + '</span>';
   document.getElementById('m-feats').innerHTML = '';
   document.getElementById('pl-label').textContent = t('your_code');
   document.getElementById('m-plans').innerHTML =
-    '<div class="code-hint" onclick="copyCode(\''+uid+'\')" style="width:100%">'+uid+'</div>';
+    '<div class="code-hint" onclick="copyCode(\'' + esc(uid) + '\')" style="width:100%">' + esc(uid) + '</div>';
   document.getElementById('m-rub').textContent = '';
   document.getElementById('m-usd').textContent = '';
-  const buyBtn=document.getElementById('m-buy');
-  buyBtn.textContent=t('save_code');
-  buyBtn.onclick=()=>copyCode(uid);
-  document.getElementById('overlay').classList.add('open');
+
+  const buyBtn = document.getElementById('m-buy');
+  buyBtn.textContent = t('save_code');
+  // ФИX #9: при закрытии/нажатии только копируем — не вызываем doBuy
+  buyBtn.onclick = () => copyCode(uid);
+
+  // ФИX #9: при закрытии модала — восстанавливаем curScript
+  const overlay = document.getElementById('overlay');
+  const restoreAndClose = () => {
+    curScript  = savedScript;
+    curPlanIdx = savedPlanIdx;
+    // Возвращаем стандартный обработчик для кнопки Buy
+    buyBtn.onclick = doBuy;
+    overlay.classList.remove('open');
+    overlay.removeEventListener('click', overlayGuard);
+  };
+  const overlayGuard = (e) => { if (e.target.id === 'overlay') restoreAndClose(); };
+  overlay.addEventListener('click', overlayGuard, { once: true });
+
+  document.querySelector('.xbtn').onclick = restoreAndClose;
+  overlay.classList.add('open');
   updateNav();
 }
 
 function copyCode(uid){
-  navigator.clipboard.writeText(uid).then(()=>toast(t('code_saved'),'ok'));
+  navigator.clipboard.writeText(uid).then(() => toast(t('code_saved'), 'ok'));
 }
 
 function switchTab(tab){
-  document.getElementById('tab-new').classList.toggle('on',tab==='new');
-  document.getElementById('tab-existing').classList.toggle('on',tab==='existing');
-  document.getElementById('pane-new').style.display      = tab==='new'?'block':'none';
-  document.getElementById('pane-existing').style.display = tab==='existing'?'block':'none';
+  document.getElementById('tab-new').classList.toggle('on', tab === 'new');
+  document.getElementById('tab-existing').classList.toggle('on', tab === 'existing');
+  document.getElementById('pane-new').style.display      = tab === 'new'      ? 'block' : 'none';
+  document.getElementById('pane-existing').style.display = tab === 'existing' ? 'block' : 'none';
 }
 
 function updateNav(){
-  const cb=document.getElementById('cab-btn'), ab=document.getElementById('auth-btn');
-  if(user){ cb.textContent=user.nick; ab.style.display='none'; }
-  else     { cb.textContent=t('cab');  ab.style.display=''; }
+  const cb = document.getElementById('cab-btn');
+  const ab = document.getElementById('auth-btn');
+  if (user) { cb.textContent = user.nick; ab.style.display = 'none'; }
+  else       { cb.textContent = t('cab');  ab.style.display = ''; }
 }
-function cabClick(){ if(user) goto('cabinet'); else goto('auth'); }
+
+function cabClick(){ if (user) goto('cabinet'); else goto('auth'); }
+
 function goto(p){
-  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
-  document.getElementById('page-'+p).classList.add('active');
-  if(p==='cabinet') renderCabinet();
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  document.getElementById('page-' + p).classList.add('active');
+  if (p === 'cabinet') renderCabinet();
 }
 
 // ══ SCRIPTS ══
-const SCRIPTS=[
-  {id:1,cat:'auto',emoji:'🚩',img:'',title:'Flag Runner',
-   short:{ru:'AFK-ходилка для тайкунов',en:'AFK walker for tycoons'},
+const SCRIPTS = [
+  {id:1, cat:'auto', emoji:'🚩', img:'', title:'Flag Runner',
+   short:{ru:'AFK-ходилка для тайкунов', en:'AFK walker for tycoons'},
    desc:{ru:'Ставишь флаги на карте — скрипт идёт по ним сам. Идеально на ночь.',
          en:'Place flags on the map — the script walks them automatically. Perfect overnight.'},
    feats:{ru:['Неограниченное кол-во точек','Настройка времени ожидания','Обход зависаний','Работает после респавна'],
           en:['Unlimited waypoints','Configurable wait time','Hang detection','Works after respawn']},
    exec:'Xeno / Solara',
-   raw:'loadstring(game:HttpGet("https://raw.githubusercontent.com/xqvijbgowwwqagzhrltxovf/FlagRunnerGGshop/refs/heads/main/FlagRunner", true))()',
-   plans:[{name:{ru:'Навсегда',en:'Forever'},price:50,badge:''}]},
-  {id:2,cat:'visual',emoji:'🌌',img:'',title:'Sky Replacer',
-   short:{ru:'Замена неба в игре',en:'Sky replacement'},
+   raw:'https://raw.githubusercontent.com/xqvijbgowwwqagzhrltxovf/FlagRunnerGGshop/refs/heads/main/FlagRunner',
+   plans:[{name:{ru:'Навсегда', en:'Forever'}, price:50, badge:''}]},
+  {id:2, cat:'visual', emoji:'🌌', img:'', title:'Sky Replacer',
+   short:{ru:'Замена неба в игре', en:'Sky replacement'},
    desc:{ru:'Меняет стандартное небо Roblox на кастомное. 5 пресетов: ночь, закат, киберпанк.',
          en:'Replaces the default Roblox sky. 5 presets: night, sunset, cyberpunk.'},
    feats:{ru:['5 готовых пресетов','Ночь / закат / киберпанк','Без влияния на FPS','Мгновенное переключение'],
@@ -531,13 +677,13 @@ const SCRIPTS=[
    exec:'Any',
    raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/skyreplacer.lua',
    plans:[
-     {name:{ru:'7 дней',en:'7 days'},price:59,badge:''},
-     {name:{ru:'30 дней',en:'30 days'},price:249,badge:'popular'},
-     {name:{ru:'Навсегда',en:'Forever'},price:499,badge:'best',
-      sale:{ru:'скидка 200 ₽ (было 699 ₽)',en:'save 200 ₽ (was 699 ₽)'}},
+     {name:{ru:'7 дней',  en:'7 days'},   price:59,  badge:''},
+     {name:{ru:'30 дней', en:'30 days'},  price:249, badge:'popular'},
+     {name:{ru:'Навсегда',en:'Forever'},  price:499, badge:'best',
+      sale:{ru:'скидка 200 ₽ (было 699 ₽)', en:'save 200 ₽ (was 699 ₽)'}},
    ]},
-  {id:3,cat:'visual',emoji:'🌿',img:'',title:'Grass Changer',
-   short:{ru:'Замена травы и текстур',en:'Grass & texture replacement'},
+  {id:3, cat:'visual', emoji:'🌿', img:'', title:'Grass Changer',
+   short:{ru:'Замена травы и текстур', en:'Grass & texture replacement'},
    desc:{ru:'Кастомные текстуры земли и травы. Несколько текстурных паков в комплекте.',
          en:'Custom ground and grass textures. Several texture packs included.'},
    feats:{ru:['Замена травы / песка / камня','Несколько текстурных паков','Лёгкий на FPS','Простая настройка'],
@@ -545,12 +691,12 @@ const SCRIPTS=[
    exec:'Any',
    raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/grasschanger.lua',
    plans:[
-     {name:{ru:'7 дней',en:'7 days'},price:59,badge:''},
-     {name:{ru:'30 дней',en:'30 days'},price:199,badge:'popular'},
-     {name:{ru:'Навсегда',en:'Forever'},price:449,badge:'best'},
+     {name:{ru:'7 дней',  en:'7 days'},   price:59,  badge:''},
+     {name:{ru:'30 дней', en:'30 days'},  price:199, badge:'popular'},
+     {name:{ru:'Навсегда',en:'Forever'},  price:449, badge:'best'},
    ]},
-  {id:4,cat:'combat',emoji:'🎯',img:'',title:'AimHelper',
-   short:{ru:'Вспомогательный прицел',en:'Aim assistant'},
+  {id:4, cat:'combat', emoji:'🎯', img:'', title:'AimHelper',
+   short:{ru:'Вспомогательный прицел', en:'Aim assistant'},
    desc:{ru:'Подсветка хитбоксов и индикаторы дистанции. Лёгкая помощь без автоприцела.',
          en:'Hitbox highlight and distance indicators. Light assist without auto-aim.'},
    feats:{ru:['Подсветка хитбокса','Индикатор дистанции','Настройка цвета','Большинство игр'],
@@ -558,12 +704,12 @@ const SCRIPTS=[
    exec:'Xeno / Synapse',
    raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/aimhelper.lua',
    plans:[
-     {name:{ru:'7 дней',en:'7 days'},price:59,badge:''},
-     {name:{ru:'30 дней',en:'30 days'},price:199,badge:'popular'},
-     {name:{ru:'Навсегда',en:'Forever'},price:399,badge:'best'},
+     {name:{ru:'7 дней',  en:'7 days'},   price:59,  badge:''},
+     {name:{ru:'30 дней', en:'30 days'},  price:199, badge:'popular'},
+     {name:{ru:'Навсегда',en:'Forever'},  price:399, badge:'best'},
    ]},
-  {id:5,cat:'auto',emoji:'⚙️',img:'',title:'Farm Runner',
-   short:{ru:'Авто-фарм ресурсов',en:'Auto resource farmer'},
+  {id:5, cat:'auto', emoji:'⚙️', img:'', title:'Farm Runner',
+   short:{ru:'Авто-фарм ресурсов', en:'Auto resource farmer'},
    desc:{ru:'Автоматически собирает ресурсы по карте. Подходит для большинства тайкунов.',
          en:'Automatically collects resources around the map. Works with most tycoons.'},
    feats:{ru:['Автосбор ресурсов','Петля по маршруту','Пауза / старт','Уведомление о круге'],
@@ -571,30 +717,36 @@ const SCRIPTS=[
    exec:'Xeno / Solara',
    raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/farmrunner.lua',
    plans:[
-     {name:{ru:'7 дней',en:'7 days'},price:59,badge:''},
-     {name:{ru:'30 дней',en:'30 days'},price:249,badge:'popular'},
-     {name:{ru:'Навсегда',en:'Forever'},price:499,badge:'best'},
+     {name:{ru:'7 дней',  en:'7 days'},   price:59,  badge:''},
+     {name:{ru:'30 дней', en:'30 days'},  price:249, badge:'popular'},
+     {name:{ru:'Навсегда',en:'Forever'},  price:499, badge:'best'},
    ]},
 ];
 
-function filter(cat,btn){
-  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on'); currentCat=cat; renderGrid(cat);
+// ══ ФИX #7: filter безопасен если кнопка удалена ══
+function filter(cat, btn){
+  if (!btn) return;
+  document.querySelectorAll('.fb').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  currentCat = cat;
+  renderGrid(cat);
 }
-function renderGrid(cat='all'){
-  const g=document.getElementById('grid'); g.innerHTML='';
-  SCRIPTS.filter(s=>cat==='all'||s.cat===cat).forEach(s=>{
-    const prices=s.plans.map(p=>p.price);
-    const minP=Math.min(...prices),maxP=Math.max(...prices);
-    const priceStr=minP===maxP?`${minP} ₽`:`${t('from')} ${minP} ₽`;
-    const usdStr=minP===maxP?rubToUsd(minP):`${rubToUsd(minP)} – ${rubToUsd(maxP)}`;
-    const imgHtml=s.img?`<div class="card-img"><img src="${s.img}" alt="${s.title}" loading="lazy"/></div>`
-                       :`<div class="card-img">${s.emoji}</div>`;
-    const d=document.createElement('div'); d.className='card';
-    d.innerHTML=`${imgHtml}<div class="card-body">
-      <span class="ctag ${s.cat}">${t('tag_'+s.cat)}</span>
-      <div class="ctitle">${s.title}</div>
-      <div class="cdesc">${s.short[lang]}</div>
+
+function renderGrid(cat = 'all'){
+  const g = document.getElementById('grid'); g.innerHTML = '';
+  SCRIPTS.filter(s => cat === 'all' || s.cat === cat).forEach(s => {
+    const prices  = s.plans.map(p => p.price);
+    const minP    = Math.min(...prices), maxP = Math.max(...prices);
+    const priceStr = minP === maxP ? `${minP} ₽` : `${t('from')} ${minP} ₽`;
+    const usdStr   = minP === maxP ? rubToUsd(minP) : `${rubToUsd(minP)} – ${rubToUsd(maxP)}`;
+    const imgHtml  = s.img
+      ? `<div class="card-img"><img src="${esc(s.img)}" alt="${esc(s.title)}" loading="lazy"/></div>`
+      : `<div class="card-img">${s.emoji}</div>`;
+    const d = document.createElement('div'); d.className = 'card';
+    d.innerHTML = `${imgHtml}<div class="card-body">
+      <span class="ctag ${esc(s.cat)}">${t('tag_' + s.cat)}</span>
+      <div class="ctitle">${esc(s.title)}</div>
+      <div class="cdesc">${esc(s.short[lang])}</div>
       <div class="cfoot">
         <div><div class="cprice">${priceStr}</div><div class="cprice-usd">${usdStr}</div></div>
         <button class="cbtn" onclick="openModal(${s.id})">${t('details')}</button>
@@ -604,125 +756,208 @@ function renderGrid(cat='all'){
 }
 
 function openModal(id){
-  curScript=SCRIPTS.find(s=>s.id===id); if(!curScript) return;
-  const defIdx=curScript.plans.findIndex(p=>p.badge==='popular');
-  curPlanIdx=defIdx>=0?defIdx:0;
-  document.getElementById('m-title').textContent=curScript.title;
-  document.getElementById('m-exec').textContent=curScript.exec;
-  document.getElementById('m-desc').textContent=curScript.desc[lang];
-  const mi=document.getElementById('m-img');
-  mi.innerHTML=curScript.img?`<img src="${curScript.img}" alt="${curScript.title}"/>`:`${curScript.emoji}`;
-  const fl=document.getElementById('m-feats'); fl.innerHTML='';
-  curScript.feats[lang].forEach(f=>{const li=document.createElement('li');li.textContent=f;fl.appendChild(li);});
-  document.getElementById('pl-label').textContent=t('pl_label');
-  document.getElementById('m-buy').textContent=t('buy');
-  document.getElementById('m-buy').onclick=doBuy;
+  curScript = SCRIPTS.find(s => s.id === id);
+  if (!curScript) return;
+  const defIdx = curScript.plans.findIndex(p => p.badge === 'popular');
+  curPlanIdx   = defIdx >= 0 ? defIdx : 0;
+
+  document.getElementById('m-title').textContent = curScript.title;
+  document.getElementById('m-exec').textContent  = curScript.exec;
+  document.getElementById('m-desc').textContent  = curScript.desc[lang];
+
+  const mi = document.getElementById('m-img');
+  mi.innerHTML = curScript.img
+    ? `<img src="${esc(curScript.img)}" alt="${esc(curScript.title)}"/>`
+    : curScript.emoji;
+
+  const fl = document.getElementById('m-feats'); fl.innerHTML = '';
+  curScript.feats[lang].forEach(f => {
+    const li = document.createElement('li'); li.textContent = f; fl.appendChild(li);
+  });
+
+  document.getElementById('pl-label').textContent = t('pl_label');
+  // Восстанавливаем стандартный обработчик (мог быть перезаписан showCodeModal)
+  document.getElementById('m-buy').textContent = t('buy');
+  document.getElementById('m-buy').onclick = doBuy;
+  // Восстанавливаем xbtn
+  document.querySelector('.xbtn').onclick = closeModal;
+
   renderPlans();
   document.getElementById('overlay').classList.add('open');
 }
+
 function renderPlans(){
-  const c=document.getElementById('m-plans'); c.innerHTML='';
-  curScript.plans.forEach((p,i)=>{
-    const sel=i===curPlanIdx;
-    const d=document.createElement('div'); d.className='plan'+(sel?' selected':'');
-    let badge='';
-    if(p.badge==='popular') badge=`<div class="plan-badge">${t('popular')}</div>`;
-    if(p.badge==='best')    badge=`<div class="plan-badge">${t('best')}</div>`;
-    const sale=p.sale?`<div class="plan-sale">${p.sale[lang]}</div>`:'';
-    d.innerHTML=`${badge}<div class="plan-name">${p.name[lang]}</div>
+  const c = document.getElementById('m-plans'); c.innerHTML = '';
+  curScript.plans.forEach((p, i) => {
+    const sel = i === curPlanIdx;
+    const d   = document.createElement('div'); d.className = 'plan' + (sel ? ' selected' : '');
+    let badge = '';
+    if (p.badge === 'popular') badge = `<div class="plan-badge">${t('popular')}</div>`;
+    if (p.badge === 'best')    badge = `<div class="plan-badge">${t('best')}</div>`;
+    const sale = p.sale ? `<div class="plan-sale">${esc(p.sale[lang])}</div>` : '';
+    d.innerHTML = `${badge}<div class="plan-name">${esc(p.name[lang])}</div>
       <div class="plan-rub">${p.price}<span style="font-size:12px;color:var(--muted)"> ₽</span></div>
       <div class="plan-usd">${rubToUsd(p.price)}</div>${sale}`;
-    d.onclick=()=>{curPlanIdx=i;renderPlans();};
+    d.onclick = () => { curPlanIdx = i; renderPlans(); };
     c.appendChild(d);
   });
-  const sel=curScript.plans[curPlanIdx];
-  document.getElementById('m-rub').textContent=sel.price+' ₽';
-  document.getElementById('m-usd').textContent='≈ '+rubToUsd(sel.price);
+  const sel = curScript.plans[curPlanIdx];
+  document.getElementById('m-rub').textContent = sel.price + ' ₽';
+  document.getElementById('m-usd').textContent = '≈ ' + rubToUsd(sel.price);
 }
-function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
-function overlayClick(e){ if(e.target.id==='overlay') closeModal(); }
 
-// ══ ПОКУПКА — window.open СИНХРОННО ══
+function closeModal(){
+  document.getElementById('overlay').classList.remove('open');
+}
+function overlayClick(e){ if (e.target.id === 'overlay') closeModal(); }
+
+// ══ ПОКУПКА ══
 function doBuy(){
-  if(!user){ closeModal(); goto('auth'); return; }
-  const plan=curScript.plans[curPlanIdx];
-  const label='gg_'+curScript.id+'_'+Date.now();
-  const successUrl=SITE+'/success.html?sid='+curScript.id
-    +'&plan='+encodeURIComponent(plan.name[lang])+'&label='+label;
-  const url='https://yoomoney.ru/quickpay/confirm'
-    +'?receiver='+WALLET
-    +'&quickpay-form=button'
-    +'&targets='+encodeURIComponent('GGshop: '+curScript.title+' ('+plan.name[lang]+')')
-    +'&sum='+plan.price
-    +'&label='+label
-    +'&successURL='+encodeURIComponent(successUrl);
+  if (!user) { closeModal(); goto('auth'); return; }
+  // ФИX #9: curScript мог быть null если модал не был открыт через openModal
+  if (!curScript) return;
 
-  // ✅ СИНХРОННО — до любых await, браузер не заблокирует
-  const win=window.open(url,'_blank');
+  const plan  = curScript.plans[curPlanIdx];
+  const label = 'gg_' + curScript.id + '_' + Date.now();
+  const successUrl = SITE + '/success.html?sid=' + curScript.id
+    + '&plan=' + encodeURIComponent(plan.name[lang]) + '&label=' + label;
+  const url = 'https://yoomoney.ru/quickpay/confirm'
+    + '?receiver=' + WALLET
+    + '&quickpay-form=button'
+    + '&targets=' + encodeURIComponent('GGshop: ' + curScript.title + ' (' + plan.name[lang] + ')')
+    + '&sum=' + plan.price
+    + '&label=' + label
+    + '&successURL=' + encodeURIComponent(successUrl);
+
+  // Синхронно открываем до async
+  const win = window.open(url, '_blank');
   closeModal();
 
-  if(win){
-    toast(t('pay'),'ok');
+  if (win) {
+    toast(t('pay'), 'ok');
   } else {
-    // Fallback если попап заблокирован
-    document.getElementById('pay-title').textContent=curScript.title+' — '+plan.price+' ₽';
-    document.getElementById('pay-desc').textContent=t('pay_desc');
-    document.getElementById('pay-link').href=url;
-    document.getElementById('pay-link').textContent=t('pay_go');
+    document.getElementById('pay-title').textContent = curScript.title + ' — ' + plan.price + ' ₽';
+    document.getElementById('pay-desc').textContent  = t('pay_desc');
+    document.getElementById('pay-link').href        = url;
+    document.getElementById('pay-link').textContent = t('pay_go');
     document.getElementById('pay-overlay').classList.add('open');
-    toast(t('popup_blocked'),'err');
+    toast(t('popup_blocked'), 'err');
   }
 
-  // Сохраняем в БД асинхронно после открытия окна
+  // ФИX #2: запись создаётся с paid:false — скрипт НЕ выдаётся пока paid не true
+  // paid → true устанавливает только вебхук ЮМани через Supabase Edge Function
   sb.from('purchases').insert({
-    user_id:user.id, script_id:curScript.id,
-    script_title:curScript.title, plan_name:plan.name[lang],
-    price_rub:plan.price, raw_url:curScript.raw, label, paid:false
+    user_id     : user.id,
+    script_id   : curScript.id,
+    script_title: curScript.title,
+    plan_name   : plan.name[lang],
+    price_rub   : plan.price,
+    raw_url     : curScript.raw,
+    label,
+    paid        : false   // ← NOT выдаём скрипт здесь
   });
 }
 
+// ══ КАБИНЕТ ══ (ФИX #6: снапшот uid, проверка после await)
 async function renderCabinet(){
-  const c=document.getElementById('cab-content');
-  if(!user){
-    c.innerHTML=`<div class="empty" style="padding:60px 28px">
+  const c = document.getElementById('cab-content');
+  if (!user){
+    c.innerHTML = `<div class="empty" style="padding:60px 28px">
       <p style="font-size:36px;margin-bottom:12px">🔒</p><p>${t('locked')}</p></div>`;
     return;
   }
-  c.innerHTML=`<div class="cab-header">
-    <div class="avatar">${user.nick[0].toUpperCase()}</div>
-    <div><div class="cab-name">${user.nick}</div>
-    <div class="cab-meta">ID: ${user.id.slice(0,8)}...</div></div>
+
+  // ФИX #6: снапшот на момент старта запроса
+  const snapshotUid = user.id;
+
+  c.innerHTML = `<div class="cab-header">
+    <div class="avatar">${esc(user.nick[0].toUpperCase())}</div>
+    <div><div class="cab-name">${esc(user.nick)}</div>
+    <div class="cab-meta">ID: ${esc(user.id.slice(0,8))}...</div></div>
     <button class="cab-logout" onclick="doLogout()">${t('logout')}</button>
   </div>
   <div class="section-title">${t('cab_title')}</div>
   <div id="purchases-list"><div class="empty">${t('loading')}</div></div>`;
 
-  const {data}=await sb.from('purchases').select('*').eq('user_id',user.id).order('created_at',{ascending:false});
-  const pl=document.getElementById('purchases-list');
-  if(!data||!data.length){
-    pl.innerHTML=`<div class="empty"><p style="font-size:36px;margin-bottom:12px">📦</p><p>${t('empty')}</p></div>`;
+  const { data } = await sb.from('purchases')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  // ФИX #6: пользователь мог выйти / сменить аккаунт пока шёл запрос
+  if (!user || user.id !== snapshotUid) return;
+
+  const pl = document.getElementById('purchases-list');
+  if (!pl) return; // DOM мог измениться
+
+  if (!data || !data.length){
+    pl.innerHTML = `<div class="empty"><p style="font-size:36px;margin-bottom:12px">📦</p><p>${t('empty')}</p></div>`;
     return;
   }
-  pl.innerHTML=data.map(p=>`
-    <div class="purchase-card">
+
+  pl.innerHTML = data.map(p => {
+    // ФИX #2: кнопку копирования показываем ТОЛЬКО если paid === true
+    // ФИX #3: дополнительно проверяем безопасность URL
+    let actionHtml;
+    if (p.paid) {
+      if (!isValidRawUrl(p.raw_url)) {
+        // ФИX #3: если URL из БД подозрительный — не даём скопировать
+        actionHtml = `<span class="pending-badge" style="color:#f87171">${t('url_blocked')}</span>`;
+      } else {
+        // Экранируем URL чтобы он не мог вырваться из onclick-атрибута
+        const safeUrl = esc(p.raw_url);
+        actionHtml = `<button class="copy-btn" onclick="copyRaw('${safeUrl}')">${t('copy_btn')}</button>`;
+      }
+    } else {
+      // Показываем статус ожидания + кнопку "Проверить"
+      const safeLabel = esc(p.label);
+      actionHtml = `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span class="pending-badge">${t('pending')}</span>
+        <button class="check-btn" onclick="checkPayment('${safeLabel}',this)">${t('check_btn')}</button>
+      </div>`;
+    }
+
+    return `<div class="purchase-card">
       <div>
-        <div class="p-name">${p.script_title}<span class="p-plan-badge">${p.plan_name}</span></div>
-        <div class="p-meta">${new Date(p.created_at).toLocaleDateString(lang==='ru'?'ru-RU':'en-US')} · ${p.price_rub} ₽</div>
+        <div class="p-name">${esc(p.script_title)}<span class="p-plan-badge">${esc(p.plan_name)}</span></div>
+        <div class="p-meta">${new Date(p.created_at).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US')} · ${p.price_rub} ₽</div>
       </div>
-      <button class="copy-btn" onclick="copyRaw('${p.raw_url}')">${t('copy_btn')}</button>
-    </div>`).join('');
+      ${actionHtml}
+    </div>`;
+  }).join('');
 }
 
+// ФИX #2: "Проверить оплату" — полинг одной записи по label
+async function checkPayment(label, btn){
+  btn.disabled = true; btn.textContent = '...';
+  const { data } = await sb.from('purchases')
+    .select('paid')
+    .eq('label', label)
+    .eq('user_id', user?.id)
+    .single();
+  if (data?.paid) {
+    renderCabinet(); // перерисуем весь кабинет — появится кнопка скопировать
+  } else {
+    toast('⏳ Оплата пока не поступила', 'err');
+    btn.disabled = false; btn.textContent = t('check_btn');
+  }
+}
+
+// ФИX #3: проверяем URL перед копированием
 function copyRaw(url){
+  if (!isValidRawUrl(url)) { toast(t('url_blocked'), 'err'); return; }
   navigator.clipboard.writeText(`loadstring(game:HttpGet("${url}"))()`)
-    .then(()=>toast(t('copied'),'ok'));
-}
-function toast(msg,type=''){
-  const el=document.getElementById('toast');
-  el.textContent=msg; el.className='toast show '+(type||'');
-  setTimeout(()=>el.classList.remove('show'),3500);
+    .then(() => toast(t('copied'), 'ok'));
 }
 
+function toast(msg, type = ''){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + (type || '');
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+// ══ INIT ══
 setLang(lang);
 updateNav();
 renderGrid();
