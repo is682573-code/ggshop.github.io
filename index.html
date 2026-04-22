@@ -16,13 +16,26 @@
   ║  CREATE POLICY "own_profile" ON profiles                         ║
   ║    FOR ALL USING (auth.uid() = id);                              ║
   ║                                                                  ║
-  ║  -- purchases: только свои, читать можно только свои             ║
+  ║  -- purchases: читать только свои                                ║
   ║  ALTER TABLE purchases ENABLE ROW LEVEL SECURITY;               ║
-  ║  CREATE POLICY "own_purchases" ON purchases                      ║
-  ║    FOR ALL USING (auth.uid() = user_id);                         ║
+  ║  CREATE POLICY "own_purchases_select" ON purchases               ║
+  ║    FOR SELECT USING (auth.uid() = user_id);                      ║
+  ║                                                                  ║
+  ║  -- INSERT: клиент НЕ может передать paid = true                 ║
+  ║  CREATE POLICY "own_purchases_insert" ON purchases               ║
+  ║    FOR INSERT WITH CHECK (                                       ║
+  ║      auth.uid() = user_id AND paid = false                       ║
+  ║    );                                                            ║
+  ║                                                                  ║
+  ║  -- UPDATE paid разрешён ТОЛЬКО service_role (вебхук)           ║
+  ║  CREATE POLICY "webhook_only_paid" ON purchases                  ║
+  ║    FOR UPDATE USING (auth.role() = 'service_role');              ║
   ║                                                                  ║
   ║  -- добавить PIN-хэш в profiles:                                 ║
   ║  ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pin_hash TEXT;    ║
+  ║                                                                  ║
+  ║  -- DEFAULT false для paid (не доверяем клиенту):               ║
+  ║  ALTER TABLE purchases ALTER COLUMN paid SET DEFAULT false;      ║
   ╚══════════════════════════════════════════════════════════════════╝
 -->
 
@@ -162,6 +175,7 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 .check-btn{font-size:12px;font-weight:500;padding:7px 16px;background:rgba(34,197,94,.1);
   border:1px solid rgba(34,197,94,.3);color:var(--green);cursor:pointer;border-radius:8px;transition:all .15s;white-space:nowrap}
 .check-btn:hover{background:rgba(34,197,94,.2)}
+.check-btn:disabled{opacity:.5;cursor:not-allowed}
 .pending-badge{font-size:11px;color:var(--muted);padding:7px 12px;
   background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;white-space:nowrap}
 .auth-wrap{max-width:380px;margin:48px auto;padding:0 24px}
@@ -209,6 +223,12 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 .pay-cancel{background:none;border:1px solid var(--border2);color:var(--dim);
   width:100%;padding:10px;border-radius:10px;cursor:pointer;font-size:13px;transition:all .15s}
 .pay-cancel:hover{border-color:var(--pink);color:var(--pink)}
+/* M-1: success banner */
+.success-banner{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35);
+  border-radius:14px;padding:20px 24px;margin:24px 28px;display:flex;align-items:center;gap:14px}
+.success-banner-icon{font-size:32px;flex-shrink:0}
+.success-banner-title{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--green);font-weight:600;margin-bottom:4px}
+.success-banner-sub{font-size:12px;color:var(--dim)}
 </style>
 </head>
 <body>
@@ -232,13 +252,22 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
     </div>
     <button class="nav-btn nav-ghost" onclick="goto('shop')" id="n-shop">Магазин</button>
     <button class="nav-btn nav-ghost" id="cab-btn" onclick="cabClick()">Кабинет</button>
-    <!-- ФИX #8: auth-btn добавлен в applyT — теперь переводится корректно -->
     <button class="nav-btn nav-solid" id="auth-btn" onclick="goto('auth')" style="display:none">Войти</button>
   </nav>
 </header>
 
 <!-- SHOP -->
 <div class="page active" id="page-shop">
+  <!-- M-1 FIX: success banner — показывается если в URL есть ?label= -->
+  <div id="success-banner" style="display:none">
+    <div class="success-banner">
+      <div class="success-banner-icon">✅</div>
+      <div>
+        <div class="success-banner-title" id="success-title">Оплата получена!</div>
+        <div class="success-banner-sub" id="success-sub">Проверь кабинет — скрипт появится после подтверждения.</div>
+      </div>
+    </div>
+  </div>
   <div class="hero">
     <div class="hero-badge">✦ ROBLOX SCRIPTS ✦</div>
     <h1>GGshop</h1>
@@ -250,7 +279,6 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
     </div>
   </div>
   <div class="filters">
-    <!-- ФИX #7: onclick передаёт event, не ссылку на btn — безопасно при удалении из DOM -->
     <button class="fb on" id="f-all"    onclick="filter('all',this)">Все</button>
     <button class="fb"   id="f-auto"   onclick="filter('auto',this)">Авто</button>
     <button class="fb"   id="f-visual" onclick="filter('visual',this)">Визуал</button>
@@ -284,7 +312,6 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
           <label id="lbl-nick">Никнейм</label>
           <input id="new-nick" placeholder="твой никнейм" maxlength="20"/>
         </div>
-        <!-- ФИX #4: добавлен PIN -->
         <div class="field">
           <label id="lbl-pin">PIN-код (4–8 цифр)</label>
           <input id="new-pin" type="password" placeholder="1234" maxlength="8" inputmode="numeric"/>
@@ -300,7 +327,6 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
           <input id="ex-code" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
             style="font-family:'JetBrains Mono',monospace;font-size:12px"/>
         </div>
-        <!-- ФИX #4: поле PIN для входа -->
         <div class="field">
           <label id="lbl-pin-ex">PIN-код</label>
           <input id="ex-pin" type="password" placeholder="1234" maxlength="8" inputmode="numeric"/>
@@ -313,7 +339,7 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 </div>
 
 <!-- MODAL -->
-<div class="overlay" id="overlay" onclick="overlayClick(event)">
+<div class="overlay" id="overlay">
   <div class="modal">
     <div class="mhead">
       <span class="mtitle" id="m-title">—</span>
@@ -344,29 +370,25 @@ const WALLET   = '4100119480343964';
 const SITE     = 'https://is682573-code.github.io/ggshop.github.io';
 const USD_RATE = 90;
 
-// ФИX #3: белый список разрешённых хостов для raw_url
+// Белый список разрешённых хостов для raw_url
 const ALLOWED_RAW_HOSTS = ['raw.githubusercontent.com'];
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ══ ФИX #4: SHA-256 через SubtleCrypto (нет внешних зависимостей) ══
+// ══ SHA-256 с солью (pin + uid) — защита от rainbow table ══
 async function sha256(str) {
-  const buf = await crypto.subtle.digest(
-    'SHA-256', new TextEncoder().encode(str)
-  );
-  return Array.from(new Uint8Array(buf))
-    .map(b => b.toString(16).padStart(2, '0')).join('');
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
+async function hashPin(pin, uid) { return sha256(pin + ':' + uid); }
 
-// ══ ФИX #3: валидация URL перед копированием ══
+// ══ Валидация URL ══
 function isValidRawUrl(url) {
-  try {
-    const u = new URL(url);
-    return ALLOWED_RAW_HOSTS.includes(u.hostname);
-  } catch { return false; }
+  try { const u = new URL(url); return ALLOWED_RAW_HOSTS.includes(u.hostname); }
+  catch { return false; }
 }
 
-// ══ Sanitize text before inserting into DOM ══
+// ══ Sanitize ══
 function esc(s) {
   return String(s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;')
@@ -380,8 +402,7 @@ const T = {
     hero:'качественные скрипты по доступным ценам',
     st_scripts:'скриптов', st_support:'поддержка', st_work:'рабочие',
     f_all:'Все', f_auto:'Авто', f_visual:'Визуал', f_combat:'Боёвка',
-    auth_title:'Аккаунт',
-    tab_new:'Новый', tab_ex:'Уже есть',
+    auth_title:'Аккаунт', tab_new:'Новый', tab_ex:'Уже есть',
     warn_title:'⚠ Сохрани свой код!',
     warn_text:'После входа тебе выдастся уникальный код. Сохрани его — он нужен чтобы войти снова и увидеть покупки.',
     lbl_nick:'Никнейм', lbl_code:'Твой код',
@@ -410,14 +431,16 @@ const T = {
     your_code:'Твой код для входа (нажми чтобы скопировать):',
     popup_blocked:'Попап заблокирован — нажми кнопку ниже',
     url_blocked:'⚠ Небезопасный URL в записи — обратись в поддержку',
+    // M-1
+    success_title:'Оплата получена!',
+    success_sub:'Скрипт появится в кабинете после подтверждения платежа.',
   },
   en:{
     shop:'Shop', cab:'Cabinet', login:'Log in',
     hero:'quality scripts at affordable prices',
     st_scripts:'scripts', st_support:'support', st_work:'working',
     f_all:'All', f_auto:'Auto', f_visual:'Visual', f_combat:'Combat',
-    auth_title:'Account',
-    tab_new:'New user', tab_ex:'I have a code',
+    auth_title:'Account', tab_new:'New user', tab_ex:'I have a code',
     warn_title:'⚠ Save your code!',
     warn_text:'After signing in you will receive a unique code. Save it — you need it to log in again and see your purchases.',
     lbl_nick:'Nickname', lbl_code:'Your code',
@@ -446,6 +469,9 @@ const T = {
     your_code:'Your login code (click to copy):',
     popup_blocked:'Popup blocked — click the button below',
     url_blocked:'⚠ Unsafe URL in record — contact support',
+    // M-1
+    success_title:'Payment received!',
+    success_sub:'Your script will appear in the cabinet after payment confirmation.',
   }
 };
 
@@ -464,30 +490,15 @@ function setLang(l){
 
 function applyT(){
   const map = {
-    'n-shop'       : 'shop',
-    // ФИX #8: добавлены auth-btn и cab-btn в маппинг переводов
-    'auth-btn'     : 'login',
-    'hero-sub'     : 'hero',
-    'st-scripts'   : 'st_scripts',
-    'st-support'   : 'st_support',
-    'st-work'      : 'st_work',
-    'f-all'        : 'f_all',
-    'f-auto'       : 'f_auto',
-    'f-visual'     : 'f_visual',
-    'f-combat'     : 'f_combat',
-    'auth-title'   : 'auth_title',
-    'tab-new'      : 'tab_new',
-    'tab-existing' : 'tab_ex',
-    'warn-title'   : 'warn_title',
-    'warn-text'    : 'warn_text',
-    'lbl-nick'     : 'lbl_nick',
-    'lbl-code'     : 'lbl_code',
-    'lbl-pin'      : 'lbl_pin',
-    'lbl-pin-ex'   : 'lbl_pin_ex',
-    'new-btn'      : 'btn_new',
-    'ex-btn'       : 'btn_ex',
-    'pl-label'     : 'pl_label',
-    'm-buy'        : 'buy',
+    'n-shop':'shop', 'auth-btn':'login', 'hero-sub':'hero',
+    'st-scripts':'st_scripts', 'st-support':'st_support', 'st-work':'st_work',
+    'f-all':'f_all', 'f-auto':'f_auto', 'f-visual':'f_visual', 'f-combat':'f_combat',
+    'auth-title':'auth_title', 'tab-new':'tab_new', 'tab-existing':'tab_ex',
+    'warn-title':'warn_title', 'warn-text':'warn_text',
+    'lbl-nick':'lbl_nick', 'lbl-code':'lbl_code',
+    'lbl-pin':'lbl_pin', 'lbl-pin-ex':'lbl_pin_ex',
+    'new-btn':'btn_new', 'ex-btn':'btn_ex',
+    'pl-label':'pl_label', 'm-buy':'buy',
   };
   for (const [id, key] of Object.entries(map)) {
     const el = document.getElementById(id);
@@ -497,16 +508,20 @@ function applyT(){
   const ec = document.getElementById('ex-code');  if (ec) ec.placeholder = t('ph_code');
 }
 
-// ══ STATE ══
+// ══ SESSION: sessionStorage (H-2 fix) ══
+const store = {
+  get:    k => { try { return JSON.parse(sessionStorage.getItem(k)); } catch { return null; } },
+  set:    (k,v) => sessionStorage.setItem(k, JSON.stringify(v)),
+  remove: k => sessionStorage.removeItem(k),
+};
+
 let user = null, curScript = null, curPlanIdx = 0, currentCat = 'all';
 
-// ══ RESTORE SESSION — ФИX #5: храним минимум (id + nick) ══
 (function restoreLocal(){
-  const saved = localStorage.getItem('gg_anon');
-  if (saved) { try { user = JSON.parse(saved); } catch(e) {} }
+  const saved = store.get('gg_anon');
+  if (saved) user = saved;
 })();
 
-// ══ ФИX #4: валидация PIN ══
 function isValidPin(pin){ return /^\d{4,8}$/.test(pin); }
 
 // ══ НОВЫЙ ПОЛЬЗОВАТЕЛЬ ══
@@ -517,7 +532,6 @@ async function doNewUser(){
   const btn  = document.getElementById('new-btn');
 
   if (!nick) { err.textContent = t('err_fill'); return; }
-  // ФИX #4: проверяем PIN перед отправкой
   if (!isValidPin(pin)) { err.textContent = t('err_pin'); return; }
 
   btn.disabled = true; btn.textContent = '...'; err.textContent = '';
@@ -526,18 +540,17 @@ async function doNewUser(){
   if (error) { err.textContent = error.message; btn.disabled = false; btn.textContent = t('btn_new'); return; }
 
   const uid     = data.user.id;
-  const pinHash = await sha256(pin);
+  const pinHash = await hashPin(pin, uid);
 
   await sb.from('profiles').upsert({ id: uid, nickname: nick, pin_hash: pinHash });
 
   user = { id: uid, nick };
-  localStorage.setItem('gg_anon', JSON.stringify(user));
-
+  store.set('gg_anon', user);
   btn.disabled = false; btn.textContent = t('btn_new');
   showCodeModal(uid, nick);
 }
 
-// ══ ВОЙТИ ПО КОДУ ══ (ФИX #4: проверяем PIN)
+// ══ ВОЙТИ ПО КОДУ ══
 async function doExistingUser(){
   const code = document.getElementById('ex-code').value.trim();
   const pin  = document.getElementById('ex-pin').value.trim();
@@ -550,51 +563,41 @@ async function doExistingUser(){
   btn.disabled = true; btn.textContent = '...'; err.textContent = '';
 
   const { data, error } = await sb.from('profiles')
-    .select('nickname, pin_hash')
-    .eq('id', code)
-    .single();
+    .select('nickname, pin_hash').eq('id', code).single();
 
   if (error || !data) {
     err.textContent = t('err_not_found');
     btn.disabled = false; btn.textContent = t('btn_ex'); return;
   }
 
-  // ФИX #4: сравниваем хэши
   if (data.pin_hash) {
-    const inputHash = await sha256(pin);
+    const inputHash = await hashPin(pin, code);
     if (inputHash !== data.pin_hash) {
       err.textContent = t('err_wrong_pin');
       btn.disabled = false; btn.textContent = t('btn_ex'); return;
     }
   }
-  // Если pin_hash отсутствует (старый аккаунт без PIN) — пускаем без проверки
-  // чтобы не ломать существующих пользователей. Можно убрать после миграции.
 
   user = { id: code, nick: data.nickname };
-  localStorage.setItem('gg_anon', JSON.stringify(user));
-
+  store.set('gg_anon', user);
   btn.disabled = false; btn.textContent = t('btn_ex');
-  updateNav();
-  goto('shop');
+  updateNav(); goto('shop');
   toast('👋 ' + data.nickname, 'ok');
 }
 
 // ══ ВЫХОД ══
 function doLogout(){
   sb.auth.signOut();
-  localStorage.removeItem('gg_anon');
+  store.remove('gg_anon');
   user = null;
-  updateNav();
-  goto('shop');
+  updateNav(); goto('shop');
   toast('👋', 'ok');
 }
 
-// ══ КОД ПОСЛЕ РЕГИСТРАЦИИ ══ (ФИX #9: сохраняем/восстанавливаем curScript)
+// ══ КОД ПОСЛЕ РЕГИСТРАЦИИ ══
 function showCodeModal(uid, nick){
   const savedScript  = curScript;
   const savedPlanIdx = curPlanIdx;
-
-  // Очищаем curScript чтобы doBuy не сработал со старыми данными
   curScript = null;
 
   document.getElementById('m-title').textContent = nick + ' ✦';
@@ -610,22 +613,19 @@ function showCodeModal(uid, nick){
 
   const buyBtn = document.getElementById('m-buy');
   buyBtn.textContent = t('save_code');
-  // ФИX #9: при закрытии/нажатии только копируем — не вызываем doBuy
   buyBtn.onclick = () => copyCode(uid);
 
-  // ФИX #9: при закрытии модала — восстанавливаем curScript
   const overlay = document.getElementById('overlay');
   const restoreAndClose = () => {
     curScript  = savedScript;
     curPlanIdx = savedPlanIdx;
-    // Возвращаем стандартный обработчик для кнопки Buy
     buyBtn.onclick = doBuy;
     overlay.classList.remove('open');
-    overlay.removeEventListener('click', overlayGuard);
+    overlay.removeEventListener('click', codeOverlayGuard);
   };
-  const overlayGuard = (e) => { if (e.target.id === 'overlay') restoreAndClose(); };
-  overlay.addEventListener('click', overlayGuard, { once: true });
-
+  // H-3 FIX: именованный guard — не конфликтует с closeModal
+  const codeOverlayGuard = (e) => { if (e.target.id === 'overlay') restoreAndClose(); };
+  overlay.addEventListener('click', codeOverlayGuard, { once: true });
   document.querySelector('.xbtn').onclick = restoreAndClose;
   overlay.classList.add('open');
   updateNav();
@@ -656,6 +656,33 @@ function goto(p){
   document.getElementById('page-' + p).classList.add('active');
   if (p === 'cabinet') renderCabinet();
 }
+
+// ══ M-1 FIX: обработка ?label= прямо в index.html ══
+// ЮМани редиректит обратно на SITE/?label=gg_X_TIMESTAMP
+// Показываем баннер и чистим URL чтобы при F5 не показывало повторно
+(function handleSuccessRedirect(){
+  const params = new URLSearchParams(location.search);
+  const label  = params.get('label');
+  if (!label || !label.startsWith('gg_')) return;
+
+  // Чистим URL (без перезагрузки)
+  history.replaceState(null, '', location.pathname);
+
+  const banner = document.getElementById('success-banner');
+  if (!banner) return;
+  banner.style.display = 'block';
+
+  // Тексты подставятся после setLang() — используем setTimeout(0)
+  setTimeout(() => {
+    const titleEl = document.getElementById('success-title');
+    const subEl   = document.getElementById('success-sub');
+    if (titleEl) titleEl.textContent = t('success_title');
+    if (subEl)   subEl.textContent   = t('success_sub');
+  }, 0);
+
+  // Скрываем баннер через 10 секунд
+  setTimeout(() => { banner.style.display = 'none'; }, 10000);
+})();
 
 // ══ SCRIPTS ══
 const SCRIPTS = [
@@ -723,7 +750,6 @@ const SCRIPTS = [
    ]},
 ];
 
-// ══ ФИX #7: filter безопасен если кнопка удалена ══
 function filter(cat, btn){
   if (!btn) return;
   document.querySelectorAll('.fb').forEach(b => b.classList.remove('on'));
@@ -735,8 +761,8 @@ function filter(cat, btn){
 function renderGrid(cat = 'all'){
   const g = document.getElementById('grid'); g.innerHTML = '';
   SCRIPTS.filter(s => cat === 'all' || s.cat === cat).forEach(s => {
-    const prices  = s.plans.map(p => p.price);
-    const minP    = Math.min(...prices), maxP = Math.max(...prices);
+    const prices   = s.plans.map(p => p.price);
+    const minP     = Math.min(...prices), maxP = Math.max(...prices);
     const priceStr = minP === maxP ? `${minP} ₽` : `${t('from')} ${minP} ₽`;
     const usdStr   = minP === maxP ? rubToUsd(minP) : `${rubToUsd(minP)} – ${rubToUsd(maxP)}`;
     const imgHtml  = s.img
@@ -776,11 +802,9 @@ function openModal(id){
   });
 
   document.getElementById('pl-label').textContent = t('pl_label');
-  // Восстанавливаем стандартный обработчик (мог быть перезаписан showCodeModal)
-  document.getElementById('m-buy').textContent = t('buy');
-  document.getElementById('m-buy').onclick = doBuy;
-  // Восстанавливаем xbtn
-  document.querySelector('.xbtn').onclick = closeModal;
+  document.getElementById('m-buy').textContent    = t('buy');
+  document.getElementById('m-buy').onclick        = doBuy;
+  document.querySelector('.xbtn').onclick         = closeModal;
 
   renderPlans();
   document.getElementById('overlay').classList.add('open');
@@ -806,21 +830,22 @@ function renderPlans(){
   document.getElementById('m-usd').textContent = '≈ ' + rubToUsd(sel.price);
 }
 
+// H-3 FIX: overlayClick удалена — логика закрытия только через closeModal и codeOverlayGuard
 function closeModal(){
   document.getElementById('overlay').classList.remove('open');
 }
-function overlayClick(e){ if (e.target.id === 'overlay') closeModal(); }
 
 // ══ ПОКУПКА ══
 function doBuy(){
   if (!user) { closeModal(); goto('auth'); return; }
-  // ФИX #9: curScript мог быть null если модал не был открыт через openModal
   if (!curScript) return;
 
   const plan  = curScript.plans[curPlanIdx];
   const label = 'gg_' + curScript.id + '_' + Date.now();
-  const successUrl = SITE + '/success.html?sid=' + curScript.id
-    + '&plan=' + encodeURIComponent(plan.name[lang]) + '&label=' + label;
+
+  // M-1 FIX: successURL указывает обратно на index с ?label=
+  const successUrl = SITE + '/?label=' + label;
+
   const url = 'https://yoomoney.ru/quickpay/confirm'
     + '?receiver=' + WALLET
     + '&quickpay-form=button'
@@ -829,7 +854,6 @@ function doBuy(){
     + '&label=' + label
     + '&successURL=' + encodeURIComponent(successUrl);
 
-  // Синхронно открываем до async
   const win = window.open(url, '_blank');
   closeModal();
 
@@ -838,14 +862,15 @@ function doBuy(){
   } else {
     document.getElementById('pay-title').textContent = curScript.title + ' — ' + plan.price + ' ₽';
     document.getElementById('pay-desc').textContent  = t('pay_desc');
-    document.getElementById('pay-link').href        = url;
-    document.getElementById('pay-link').textContent = t('pay_go');
+    document.getElementById('pay-link').href         = url;
+    document.getElementById('pay-link').textContent  = t('pay_go');
     document.getElementById('pay-overlay').classList.add('open');
     toast(t('popup_blocked'), 'err');
   }
 
-  // ФИX #2: запись создаётся с paid:false — скрипт НЕ выдаётся пока paid не true
-  // paid → true устанавливает только вебхук ЮМани через Supabase Edge Function
+  // C-2 FIX: НЕ передаём поле paid вообще — БД сама поставит DEFAULT false.
+  // Клиент физически не может отправить paid:true, потому что поле отсутствует в запросе.
+  // RLS-политика "own_purchases_insert" WITH CHECK (paid = false) — дополнительный барьер.
   sb.from('purchases').insert({
     user_id     : user.id,
     script_id   : curScript.id,
@@ -853,12 +878,18 @@ function doBuy(){
     plan_name   : plan.name[lang],
     price_rub   : plan.price,
     raw_url     : curScript.raw,
-    label,
-    paid        : false   // ← NOT выдаём скрипт здесь
+    label
+    // paid — НЕ передаём: DEFAULT false на стороне БД
+  }).then(({ error }) => {
+    // L-1 FIX: обрабатываем ошибку вставки
+    if (error) {
+      console.error('Purchase insert error:', error.message);
+      toast('⚠ Ошибка записи покупки', 'err');
+    }
   });
 }
 
-// ══ КАБИНЕТ ══ (ФИX #6: снапшот uid, проверка после await)
+// ══ КАБИНЕТ ══
 async function renderCabinet(){
   const c = document.getElementById('cab-content');
   if (!user){
@@ -867,7 +898,6 @@ async function renderCabinet(){
     return;
   }
 
-  // ФИX #6: снапшот на момент старта запроса
   const snapshotUid = user.id;
 
   c.innerHTML = `<div class="cab-header">
@@ -880,15 +910,12 @@ async function renderCabinet(){
   <div id="purchases-list"><div class="empty">${t('loading')}</div></div>`;
 
   const { data } = await sb.from('purchases')
-    .select('*')
-    .eq('user_id', user.id)
+    .select('*').eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
-  // ФИX #6: пользователь мог выйти / сменить аккаунт пока шёл запрос
   if (!user || user.id !== snapshotUid) return;
-
   const pl = document.getElementById('purchases-list');
-  if (!pl) return; // DOM мог измениться
+  if (!pl) return;
 
   if (!data || !data.length){
     pl.innerHTML = `<div class="empty"><p style="font-size:36px;margin-bottom:12px">📦</p><p>${t('empty')}</p></div>`;
@@ -896,27 +923,21 @@ async function renderCabinet(){
   }
 
   pl.innerHTML = data.map(p => {
-    // ФИX #2: кнопку копирования показываем ТОЛЬКО если paid === true
-    // ФИX #3: дополнительно проверяем безопасность URL
     let actionHtml;
     if (p.paid) {
       if (!isValidRawUrl(p.raw_url)) {
-        // ФИX #3: если URL из БД подозрительный — не даём скопировать
         actionHtml = `<span class="pending-badge" style="color:#f87171">${t('url_blocked')}</span>`;
       } else {
-        // Экранируем URL чтобы он не мог вырваться из onclick-атрибута
         const safeUrl = esc(p.raw_url);
         actionHtml = `<button class="copy-btn" onclick="copyRaw('${safeUrl}')">${t('copy_btn')}</button>`;
       }
     } else {
-      // Показываем статус ожидания + кнопку "Проверить"
       const safeLabel = esc(p.label);
       actionHtml = `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <span class="pending-badge">${t('pending')}</span>
-        <button class="check-btn" onclick="checkPayment('${safeLabel}',this)">${t('check_btn')}</button>
+        <button class="check-btn" id="chk-${safeLabel}" onclick="checkPayment('${safeLabel}',this)">${t('check_btn')}</button>
       </div>`;
     }
-
     return `<div class="purchase-card">
       <div>
         <div class="p-name">${esc(p.script_title)}<span class="p-plan-badge">${esc(p.plan_name)}</span></div>
@@ -927,23 +948,32 @@ async function renderCabinet(){
   }).join('');
 }
 
-// ФИX #2: "Проверить оплату" — полинг одной записи по label
+// ══ M-2 FIX: debounce на checkPayment — нельзя нажать повторно пока идёт запрос ══
+// Храним метки активных проверок — если уже проверяем, игнорируем повторный клик
+const _checkingLabels = new Set();
+
 async function checkPayment(label, btn){
+  if (_checkingLabels.has(label)) return; // M-2: debounce
+  _checkingLabels.add(label);
   btn.disabled = true; btn.textContent = '...';
-  const { data } = await sb.from('purchases')
-    .select('paid')
-    .eq('label', label)
-    .eq('user_id', user?.id)
-    .single();
-  if (data?.paid) {
-    renderCabinet(); // перерисуем весь кабинет — появится кнопка скопировать
-  } else {
-    toast('⏳ Оплата пока не поступила', 'err');
+
+  try {
+    const { data } = await sb.from('purchases')
+      .select('paid').eq('label', label).eq('user_id', user?.id).single();
+    if (data?.paid) {
+      renderCabinet();
+    } else {
+      toast('⏳ Оплата пока не поступила', 'err');
+      btn.disabled = false; btn.textContent = t('check_btn');
+    }
+  } catch(e) {
+    toast('⚠ Ошибка проверки', 'err');
     btn.disabled = false; btn.textContent = t('check_btn');
+  } finally {
+    _checkingLabels.delete(label);
   }
 }
 
-// ФИX #3: проверяем URL перед копированием
 function copyRaw(url){
   if (!isValidRawUrl(url)) { toast(t('url_blocked'), 'err'); return; }
   navigator.clipboard.writeText(`loadstring(game:HttpGet("${url}"))()`)
@@ -954,7 +984,8 @@ function toast(msg, type = ''){
   const el = document.getElementById('toast');
   el.textContent = msg;
   el.className = 'toast show ' + (type || '');
-  setTimeout(() => el.classList.remove('show'), 3500);
+  clearTimeout(el._tid);
+  el._tid = setTimeout(() => el.classList.remove('show'), 3500);
 }
 
 // ══ INIT ══
