@@ -313,7 +313,7 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 </div>
 
 <!-- MODAL -->
-<div class="overlay" id="overlay">
+<div class="overlay" id="overlay" onclick="overlayClick(event)">
   <div class="modal">
     <div class="mhead">
       <span class="mtitle" id="m-title">—</span>
@@ -349,18 +349,13 @@ const ALLOWED_RAW_HOSTS = ['raw.githubusercontent.com'];
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ══ H-1 FIX: SHA-256 с солью (pin + uid) — защита от rainbow table ══
-// PIN из 4-8 цифр без соли перебирается за <1с. С uid как солью — уникально для каждого аккаунта.
+// ══ ФИX #4: SHA-256 через SubtleCrypto (нет внешних зависимостей) ══
 async function sha256(str) {
   const buf = await crypto.subtle.digest(
     'SHA-256', new TextEncoder().encode(str)
   );
   return Array.from(new Uint8Array(buf))
     .map(b => b.toString(16).padStart(2, '0')).join('');
-}
-// Всегда используй эту функцию — не sha256 напрямую
-async function hashPin(pin, uid) {
-  return sha256(pin + ':' + uid);
 }
 
 // ══ ФИX #3: валидация URL перед копированием ══
@@ -502,23 +497,16 @@ function applyT(){
   const ec = document.getElementById('ex-code');  if (ec) ec.placeholder = t('ph_code');
 }
 
-// ══ H-2 FIX: sessionStorage вместо localStorage ══
-// localStorage переживает закрытие браузера — риск на общих компьютерах.
-// sessionStorage очищается при закрытии вкладки/браузера автоматически.
-const store = {
-  get:    k => { try { return JSON.parse(sessionStorage.getItem(k)); } catch { return null; } },
-  set:    (k,v) => sessionStorage.setItem(k, JSON.stringify(v)),
-  remove: k => sessionStorage.removeItem(k),
-};
+// ══ STATE ══
 let user = null, curScript = null, curPlanIdx = 0, currentCat = 'all';
 
-// ══ RESTORE SESSION ══
+// ══ RESTORE SESSION — ФИX #5: храним минимум (id + nick) ══
 (function restoreLocal(){
-  const saved = store.get('gg_anon');
-  if (saved) user = saved;
+  const saved = localStorage.getItem('gg_anon');
+  if (saved) { try { user = JSON.parse(saved); } catch(e) {} }
 })();
 
-// ══ валидация PIN ══
+// ══ ФИX #4: валидация PIN ══
 function isValidPin(pin){ return /^\d{4,8}$/.test(pin); }
 
 // ══ НОВЫЙ ПОЛЬЗОВАТЕЛЬ ══
@@ -538,12 +526,12 @@ async function doNewUser(){
   if (error) { err.textContent = error.message; btn.disabled = false; btn.textContent = t('btn_new'); return; }
 
   const uid     = data.user.id;
-  const pinHash = await hashPin(pin, uid); // H-1: соль = uid
+  const pinHash = await sha256(pin);
 
   await sb.from('profiles').upsert({ id: uid, nickname: nick, pin_hash: pinHash });
 
   user = { id: uid, nick };
-  store.set('gg_anon', user);
+  localStorage.setItem('gg_anon', JSON.stringify(user));
 
   btn.disabled = false; btn.textContent = t('btn_new');
   showCodeModal(uid, nick);
@@ -573,8 +561,7 @@ async function doExistingUser(){
 
   // ФИX #4: сравниваем хэши
   if (data.pin_hash) {
-  // H-1: при проверке используем uid (=code) как соль
-    const inputHash = await hashPin(pin, code);
+    const inputHash = await sha256(pin);
     if (inputHash !== data.pin_hash) {
       err.textContent = t('err_wrong_pin');
       btn.disabled = false; btn.textContent = t('btn_ex'); return;
@@ -584,7 +571,7 @@ async function doExistingUser(){
   // чтобы не ломать существующих пользователей. Можно убрать после миграции.
 
   user = { id: code, nick: data.nickname };
-  store.set('gg_anon', user);
+  localStorage.setItem('gg_anon', JSON.stringify(user));
 
   btn.disabled = false; btn.textContent = t('btn_ex');
   updateNav();
@@ -595,7 +582,7 @@ async function doExistingUser(){
 // ══ ВЫХОД ══
 function doLogout(){
   sb.auth.signOut();
-  store.remove('gg_anon');
+  localStorage.removeItem('gg_anon');
   user = null;
   updateNav();
   goto('shop');
@@ -974,9 +961,6 @@ function toast(msg, type = ''){
 setLang(lang);
 updateNav();
 renderGrid();
-</script>
-</body>
-</html>
 </script>
 </body>
 </html>
