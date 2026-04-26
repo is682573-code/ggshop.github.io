@@ -1,0 +1,104 @@
+-- ═══════════════════════════════════════════════════════════
+--  GGshop — система проверки лицензии
+--  Вставь этот код В НАЧАЛО каждого скрипта
+--  Замени SCRIPT_ID на номер скрипта (1-5)
+-- ═══════════════════════════════════════════════════════════
+
+local SCRIPT_ID    = 1  -- ← МЕНЯЙ ДЛЯ КАЖДОГО СКРИПТА
+local SUPABASE_URL = "https://guzxxodewipzihypohoc.supabase.co"
+local SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1enh4b2Rld2lwemloeXBvaG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDk5NTIsImV4cCI6MjA5MjE4NTk1Mn0.xzyW9NHTa35OBxBdJy8I5JOpmOteGa0Tvg5vPsWOT-E"
+
+-- Получаем ник игрока
+local Players      = game:GetService("Players")
+local LocalPlayer  = Players.LocalPlayer
+local robloxNick   = LocalPlayer.Name
+
+-- GUI уведомления
+local function showMsg(text, color)
+    local sg = Instance.new("ScreenGui")
+    sg.ResetOnSpawn = false
+    sg.Name = "GGshopNotice"
+    local old = LocalPlayer.PlayerGui:FindFirstChild("GGshopNotice")
+    if old then old:Destroy() end
+
+    local frame = Instance.new("Frame", sg)
+    frame.Size = UDim2.new(0, 340, 0, 70)
+    frame.Position = UDim2.new(0.5, -170, 0, 20)
+    frame.BackgroundColor3 = Color3.fromRGB(14, 11, 26)
+    frame.BorderSizePixel = 0
+
+    local corner = Instance.new("UICorner", frame)
+    corner.CornerRadius = UDim.new(0, 12)
+
+    local stroke = Instance.new("UIStroke", frame)
+    stroke.Color = color or Color3.fromRGB(168, 85, 247)
+    stroke.Thickness = 1.5
+
+    local label = Instance.new("TextLabel", frame)
+    label.Size = UDim2.new(1, -20, 1, 0)
+    label.Position = UDim2.new(0, 10, 0, 0)
+    label.BackgroundTransparency = 1
+    label.TextColor3 = Color3.fromRGB(226, 217, 243)
+    label.TextSize = 14
+    label.Font = Enum.Font.GothamMedium
+    label.Text = text
+    label.TextWrapped = true
+
+    sg.Parent = LocalPlayer.PlayerGui
+    task.delay(5, function() sg:Destroy() end)
+end
+
+-- Проверка лицензии через Supabase RPC
+local function checkLicense()
+    local ok, result = pcall(function()
+        return request({
+            Url    = SUPABASE_URL .. "/rest/v1/rpc/check_key",
+            Method = "POST",
+            Headers = {
+                ["Content-Type"]  = "application/json",
+                ["apikey"]        = SUPABASE_KEY,
+                ["Authorization"] = "Bearer " .. SUPABASE_KEY,
+            },
+            Body = game:GetService("HttpService"):JSONEncode({
+                p_nick      = robloxNick,
+                p_script_id = SCRIPT_ID,
+            })
+        })
+    end)
+
+    if not ok or not result then
+        -- Ошибка сети — не блокируем, логируем
+        warn("[GGshop] Не удалось проверить лицензию (сеть)")
+        return true
+    end
+
+    local data = game:GetService("HttpService"):JSONDecode(result.Body)
+
+    if data.allowed then
+        showMsg("✦ GGshop | Лицензия активна · " .. robloxNick,
+                Color3.fromRGB(168, 85, 247))
+        return true
+    else
+        local reason = data.reason or "unknown"
+        local msg = "✦ GGshop | Нет лицензии · " .. robloxNick
+        if reason == "expired" then
+            msg = "✦ GGshop | Лицензия истекла · купи новую на ggshop"
+        end
+        showMsg(msg, Color3.fromRGB(236, 72, 153))
+        return false
+    end
+end
+
+-- ══ ЗАПУСК ПРОВЕРКИ ══
+local licensed = checkLicense()
+if not licensed then
+    -- Останавливаем выполнение скрипта
+    return
+end
+
+-- ═══════════════════════════════════════════════════════════
+--  ВСЁ ЧТО НИЖЕ — твой реальный скрипт
+--  (пример для Flag Runner)
+-- ═══════════════════════════════════════════════════════════
+
+-- ... сюда вставляй код Flag Runner / Sky Replacer / и тд ...
