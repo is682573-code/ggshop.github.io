@@ -6,39 +6,6 @@
 <title>GGshop — Roblox Scripts</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!--
-  ╔══════════════════════════════════════════════════════════════════╗
-  ║  ВАЖНО: RLS-ПОЛИТИКИ — выполни в Supabase SQL Editor            ║
-  ║                                                                  ║
-  ║  -- profiles: только своё                                        ║
-  ║  ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;                ║
-  ║  CREATE POLICY "own_profile" ON profiles                         ║
-  ║    FOR ALL USING (auth.uid() = id);                              ║
-  ║                                                                  ║
-  ║  -- purchases: читать только свои                                ║
-  ║  ALTER TABLE purchases ENABLE ROW LEVEL SECURITY;               ║
-  ║  CREATE POLICY "own_purchases_select" ON purchases               ║
-  ║    FOR SELECT USING (auth.uid() = user_id);                      ║
-  ║                                                                  ║
-  ║  -- INSERT: клиент НЕ может передать paid = true                 ║
-  ║  CREATE POLICY "own_purchases_insert" ON purchases               ║
-  ║    FOR INSERT WITH CHECK (                                       ║
-  ║      auth.uid() = user_id AND paid = false                       ║
-  ║    );                                                            ║
-  ║                                                                  ║
-  ║  -- UPDATE paid разрешён ТОЛЬКО service_role (вебхук)           ║
-  ║  CREATE POLICY "webhook_only_paid" ON purchases                  ║
-  ║    FOR UPDATE USING (auth.role() = 'service_role');              ║
-  ║                                                                  ║
-  ║  -- добавить PIN-хэш в profiles:                                 ║
-  ║  ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pin_hash TEXT;    ║
-  ║                                                                  ║
-  ║  -- DEFAULT false для paid (не доверяем клиенту):               ║
-  ║  ALTER TABLE purchases ALTER COLUMN paid SET DEFAULT false;      ║
-  ╚══════════════════════════════════════════════════════════════════╝
--->
-
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -100,11 +67,12 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 .cbtn{font-size:12px;font-weight:500;padding:7px 16px;background:rgba(168,85,247,.15);
   border:1px solid var(--border2);color:var(--acc3);cursor:pointer;border-radius:8px;transition:all .15s;white-space:nowrap}
 .cbtn:hover{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+/* MODAL */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);
   display:none;align-items:center;justify-content:center;z-index:200;padding:16px;backdrop-filter:blur(6px)}
 .overlay.open{display:flex}
 .modal{background:var(--s2);border:1px solid var(--border2);border-radius:18px;
-  width:100%;max-width:500px;max-height:92vh;overflow-y:auto}
+  width:100%;max-width:520px;max-height:92vh;overflow-y:auto}
 .mhead{padding:18px 22px;border-bottom:1px solid var(--border);
   background:linear-gradient(135deg,#1a0a30,var(--s2));
   display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1}
@@ -115,7 +83,7 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
   width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:18px;
   display:flex;align-items:center;justify-content:center;transition:all .15s}
 .xbtn:hover{color:var(--pink)}
-.mimg{width:100%;height:170px;background:linear-gradient(135deg,#1a0a30,#0f1a30);
+.mimg{width:100%;height:160px;background:linear-gradient(135deg,#1a0a30,#0f1a30);
   display:flex;align-items:center;justify-content:center;font-size:64px;overflow:hidden}
 .mimg img{width:100%;height:100%;object-fit:cover}
 .mbody{padding:22px}
@@ -140,16 +108,19 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 .plan-name{font-size:11px;font-weight:600;color:var(--dim);margin-bottom:4px}
 .plan-rub{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:var(--acc3)}
 .plan-usd{font-size:10px;color:var(--muted);margin-top:1px}
-.plan-sale{font-size:9px;color:var(--pink);font-weight:600;margin-top:4px}
+.plan-slots{font-size:10px;color:var(--acc);margin-top:5px;font-weight:600}
+.plan-sale{font-size:9px;color:var(--pink);font-weight:600;margin-top:3px}
 .mfoot{padding:14px 22px;border-top:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;background:var(--s1);gap:12px}
 .mfinal-rub{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--acc3)}
 .mfinal-usd{font-size:11px;color:var(--muted);margin-top:2px}
-.buybtn{font-size:13px;font-weight:600;padding:12px 28px;
+.mfinal-slots{font-size:11px;color:var(--acc);margin-top:2px}
+.buybtn{font-size:13px;font-weight:600;padding:12px 24px;
   background:linear-gradient(135deg,var(--acc2),var(--pink));color:#fff;border:none;
   cursor:pointer;border-radius:10px;transition:all .15s;white-space:nowrap}
 .buybtn:hover{opacity:.9;transform:translateY(-1px)}
-.cab-wrap{padding:28px;max-width:700px;margin:0 auto}
+/* CABINET */
+.cab-wrap{padding:28px;max-width:760px;margin:0 auto}
 .cab-header{background:linear-gradient(135deg,#1a0a30,var(--s2));border:1px solid var(--border2);
   border-radius:16px;padding:22px;margin-bottom:20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 .avatar{width:50px;height:50px;border-radius:50%;flex-shrink:0;
@@ -163,25 +134,49 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 .section-title{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:1px;
   color:var(--dim);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
 .empty{text-align:center;padding:40px;color:var(--muted);font-size:14px}
-.purchase-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;
-  padding:16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:12px;flex-wrap:wrap}
-.p-name{font-size:14px;font-weight:600;margin-bottom:3px;color:var(--text)}
-.p-plan-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:6px;margin-left:6px;
+/* LICENSE CARD */
+.lic-card{background:var(--s1);border:1px solid var(--border);border-radius:14px;
+  padding:20px;margin-bottom:16px}
+.lic-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.lic-title{font-size:15px;font-weight:600;color:var(--text)}
+.lic-plan{font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px;
   background:rgba(168,85,247,.15);color:var(--acc3);border:1px solid rgba(168,85,247,.25)}
-.p-meta{font-size:12px;color:var(--muted)}
-.copy-btn{font-size:12px;font-weight:500;padding:7px 16px;background:rgba(168,85,247,.15);
-  border:1px solid var(--border2);color:var(--acc3);cursor:pointer;border-radius:8px;transition:all .15s;white-space:nowrap}
-.copy-btn:hover{background:var(--acc2);color:#fff;border-color:var(--acc2)}
-.check-btn{font-size:12px;font-weight:500;padding:7px 16px;background:rgba(34,197,94,.1);
-  border:1px solid rgba(34,197,94,.3);color:var(--green);cursor:pointer;border-radius:8px;transition:all .15s;white-space:nowrap}
-.check-btn:hover{background:rgba(34,197,94,.2)}
-.check-btn:disabled{opacity:.5;cursor:not-allowed}
-.pending-badge{font-size:11px;color:var(--muted);padding:7px 12px;
-  background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;white-space:nowrap}
+.lic-status{font-size:11px;font-weight:600;padding:3px 10px;border-radius:10px}
+.lic-status.active{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25)}
+.lic-status.pending{background:rgba(234,179,8,.12);color:#eab308;border:1px solid rgba(234,179,8,.25)}
+.lic-status.expired{background:rgba(248,113,113,.12);color:#f87171;border:1px solid rgba(248,113,113,.25)}
+.lic-expires{font-size:11px;color:var(--muted);margin-bottom:14px}
+/* SLOTS */
+.slots-label{font-size:12px;font-weight:600;color:var(--dim);margin-bottom:8px}
+.slots-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.slot-row{display:flex;align-items:center;gap:8px;background:var(--s2);
+  border:1px solid var(--border);border-radius:8px;padding:8px 12px}
+.slot-nick{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text);flex:1}
+.slot-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;
+  padding:0 4px;transition:color .15s;line-height:1}
+.slot-del:hover{color:var(--pink)}
+.slot-add{display:flex;gap:8px;margin-top:6px}
+.slot-input{flex:1;padding:8px 12px;background:var(--s2);border:1px solid var(--border2);
+  border-radius:8px;color:var(--text);font-size:13px;font-family:'JetBrains Mono',monospace;outline:none;transition:border-color .15s}
+.slot-input:focus{border-color:var(--acc)}
+.slot-input::placeholder{color:var(--muted);font-family:'Space Grotesk',sans-serif}
+.slot-add-btn{padding:8px 16px;background:rgba(168,85,247,.15);border:1px solid var(--border2);
+  color:var(--acc3);cursor:pointer;border-radius:8px;font-size:12px;font-weight:600;transition:all .15s;white-space:nowrap}
+.slot-add-btn:hover{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+.slot-add-btn:disabled{opacity:.4;cursor:not-allowed}
+.pending-note{background:rgba(234,179,8,.06);border:1px solid rgba(234,179,8,.2);
+  border-radius:10px;padding:12px 16px;font-size:12px;color:#eab308;line-height:1.6;margin-top:8px}
+/* AUTH */
 .auth-wrap{max-width:380px;margin:48px auto;padding:0 24px}
 .auth-box{background:var(--s1);border:1px solid var(--border2);border-radius:18px;padding:30px}
-.auth-title{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;text-align:center;margin-bottom:6px;color:var(--text)}
-.auth-sub{font-size:13px;color:var(--muted);text-align:center;margin-bottom:24px;line-height:1.5}
+.auth-title{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;text-align:center;margin-bottom:20px;color:var(--text)}
+.tab-row{display:flex;margin-bottom:20px;border:1px solid var(--border2);border-radius:10px;overflow:hidden}
+.tab-btn{flex:1;padding:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;
+  background:transparent;color:var(--muted);transition:all .15s}
+.tab-btn.on{background:var(--acc2);color:#fff}
+.warn-box{background:rgba(168,85,247,.08);border:1px solid var(--border2);border-radius:10px;
+  padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--dim);line-height:1.6}
+.warn-box strong{color:var(--acc3);display:block;margin-bottom:4px}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:12px;font-weight:600;color:var(--dim);margin-bottom:6px}
 .field input{width:100%;padding:11px 14px;background:var(--s2);border:1px solid var(--border2);
@@ -193,28 +188,16 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 .auth-btn:hover{opacity:.9}
 .auth-btn:disabled{opacity:.5;cursor:not-allowed}
 .auth-err{color:#f87171;font-size:12px;text-align:center;margin-top:8px;min-height:16px}
-.warn-box{background:rgba(168,85,247,.08);border:1px solid var(--border2);border-radius:10px;
-  padding:12px 14px;margin-bottom:18px;font-size:12px;color:var(--dim);line-height:1.6}
-.warn-box strong{color:var(--acc3);display:block;margin-bottom:4px;font-size:13px}
-.code-hint{font-family:'JetBrains Mono',monospace;background:var(--s2);border:1px solid var(--border);
-  border-radius:8px;padding:10px 14px;font-size:12px;color:var(--acc3);margin-top:10px;
-  word-break:break-all;cursor:pointer;transition:border-color .15s;text-align:center}
-.code-hint:hover{border-color:var(--acc)}
-.tab-row{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--border2);border-radius:10px;overflow:hidden}
-.tab-btn{flex:1;padding:10px;font-size:13px;font-weight:600;cursor:pointer;border:none;
-  background:transparent;color:var(--muted);transition:all .15s}
-.tab-btn.on{background:var(--acc2);color:#fff}
-.toast{position:fixed;bottom:24px;right:24px;background:var(--s2);border:1px solid var(--border2);
-  border-radius:12px;padding:14px 20px;font-size:13px;color:var(--text);
-  z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:300px;pointer-events:none}
-.toast.show{transform:translateY(0);opacity:1}
-.toast.ok{border-color:var(--green);color:var(--green)}
-.toast.err{border-color:#f87171;color:#f87171}
+.code-box{font-family:'JetBrains Mono',monospace;background:var(--s2);border:1px solid var(--border2);
+  border-radius:10px;padding:14px;font-size:12px;color:var(--acc3);word-break:break-all;
+  cursor:pointer;transition:border-color .15s;text-align:center;margin-bottom:14px}
+.code-box:hover{border-color:var(--acc)}
+/* PAYMENT FALLBACK */
 .pay-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);
   display:none;align-items:center;justify-content:center;z-index:300;padding:16px;backdrop-filter:blur(8px)}
 .pay-overlay.open{display:flex}
 .pay-box{background:var(--s2);border:1px solid var(--border2);border-radius:18px;
-  padding:32px;max-width:420px;width:100%;text-align:center}
+  padding:32px;max-width:400px;width:100%;text-align:center}
 .pay-box h3{font-family:'JetBrains Mono',monospace;font-size:18px;color:var(--acc3);margin-bottom:10px}
 .pay-box p{font-size:13px;color:var(--dim);line-height:1.6;margin-bottom:24px}
 .pay-link{display:block;width:100%;padding:14px;font-size:14px;font-weight:600;
@@ -223,22 +206,24 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 .pay-cancel{background:none;border:1px solid var(--border2);color:var(--dim);
   width:100%;padding:10px;border-radius:10px;cursor:pointer;font-size:13px;transition:all .15s}
 .pay-cancel:hover{border-color:var(--pink);color:var(--pink)}
-/* M-1: success banner */
-.success-banner{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35);
-  border-radius:14px;padding:20px 24px;margin:24px 28px;display:flex;align-items:center;gap:14px}
-.success-banner-icon{font-size:32px;flex-shrink:0}
-.success-banner-title{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--green);font-weight:600;margin-bottom:4px}
-.success-banner-sub{font-size:12px;color:var(--dim)}
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--s2);border:1px solid var(--border2);
+  border-radius:12px;padding:14px 20px;font-size:13px;color:var(--text);
+  z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:300px;pointer-events:none}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.ok{border-color:var(--green);color:var(--green)}
+.toast.err{border-color:#f87171;color:#f87171}
 </style>
 </head>
 <body>
 <div class="toast" id="toast"></div>
 
+<!-- PAYMENT FALLBACK -->
 <div class="pay-overlay" id="pay-overlay">
   <div class="pay-box">
-    <h3 id="pay-title">Оплата</h3>
-    <p id="pay-desc">Нажми кнопку ниже чтобы перейти к оплате</p>
-    <a class="pay-link" id="pay-link" target="_blank" href="#">Перейти к оплате →</a>
+    <h3 id="pf-title">Оплата</h3>
+    <p id="pf-desc">Нажми кнопку чтобы перейти к оплате</p>
+    <a class="pay-link" id="pf-link" target="_blank" href="#">Перейти к оплате →</a>
     <button class="pay-cancel" onclick="document.getElementById('pay-overlay').classList.remove('open')">Отмена</button>
   </div>
 </div>
@@ -258,31 +243,21 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 
 <!-- SHOP -->
 <div class="page active" id="page-shop">
-  <!-- M-1 FIX: success banner — показывается если в URL есть ?label= -->
-  <div id="success-banner" style="display:none">
-    <div class="success-banner">
-      <div class="success-banner-icon">✅</div>
-      <div>
-        <div class="success-banner-title" id="success-title">Оплата получена!</div>
-        <div class="success-banner-sub" id="success-sub">Проверь кабинет — скрипт появится после подтверждения.</div>
-      </div>
-    </div>
-  </div>
   <div class="hero">
     <div class="hero-badge">✦ ROBLOX SCRIPTS ✦</div>
     <h1>GGshop</h1>
     <p id="hero-sub">качественные скрипты по доступным ценам</p>
     <div class="hero-stats">
-      <div class="stat"><div class="stat-n">5</div><div class="stat-l" id="st-scripts">скриптов</div></div>
-      <div class="stat"><div class="stat-n">24/7</div><div class="stat-l" id="st-support">поддержка</div></div>
-      <div class="stat"><div class="stat-n">100%</div><div class="stat-l" id="st-work">рабочие</div></div>
+      <div class="stat"><div class="stat-n">5</div><div class="stat-l" id="st-s">скриптов</div></div>
+      <div class="stat"><div class="stat-n">24/7</div><div class="stat-l" id="st-sup">поддержка</div></div>
+      <div class="stat"><div class="stat-n">100%</div><div class="stat-l" id="st-w">рабочие</div></div>
     </div>
   </div>
   <div class="filters">
-    <button class="fb on" id="f-all"    onclick="filter('all',this)">Все</button>
-    <button class="fb"   id="f-auto"   onclick="filter('auto',this)">Авто</button>
-    <button class="fb"   id="f-visual" onclick="filter('visual',this)">Визуал</button>
-    <button class="fb"   id="f-combat" onclick="filter('combat',this)">Боёвка</button>
+    <button class="fb on" onclick="filterGrid('all',this)" id="f-all">Все</button>
+    <button class="fb" onclick="filterGrid('auto',this)" id="f-auto">Авто</button>
+    <button class="fb" onclick="filterGrid('visual',this)" id="f-visual">Визуал</button>
+    <button class="fb" onclick="filterGrid('combat',this)" id="f-combat">Боёвка</button>
   </div>
   <div class="grid" id="grid"></div>
 </div>
@@ -298,39 +273,25 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
     <div class="auth-box">
       <div class="auth-title" id="auth-title">Аккаунт</div>
       <div class="tab-row">
-        <button class="tab-btn on" id="tab-new"      onclick="switchTab('new')">Новый</button>
-        <button class="tab-btn"   id="tab-existing"  onclick="switchTab('existing')">Уже есть</button>
+        <button class="tab-btn on" id="tab-new" onclick="switchTab('new')">Новый</button>
+        <button class="tab-btn" id="tab-ex"  onclick="switchTab('ex')">Уже есть</button>
       </div>
-
       <!-- НОВЫЙ -->
       <div id="pane-new">
         <div class="warn-box">
-          <strong id="warn-title">⚠ Сохрани свой код!</strong>
-          <span id="warn-text">После входа тебе выдастся уникальный код. Сохрани его — он нужен чтобы войти снова и увидеть покупки.</span>
+          <strong id="warn-t">⚠ Сохрани свой код!</strong>
+          <span id="warn-b">После входа выдастся уникальный код. Сохрани его — он нужен для повторного входа.</span>
         </div>
-        <div class="field">
-          <label id="lbl-nick">Никнейм</label>
-          <input id="new-nick" placeholder="твой никнейм" maxlength="20"/>
-        </div>
-        <div class="field">
-          <label id="lbl-pin">PIN-код (4–8 цифр)</label>
-          <input id="new-pin" type="password" placeholder="1234" maxlength="8" inputmode="numeric"/>
-        </div>
+        <div class="field"><label id="lbl-nick">Никнейм</label>
+          <input id="new-nick" placeholder="твой никнейм" maxlength="24"/></div>
         <div class="auth-err" id="new-err"></div>
         <button class="auth-btn" id="new-btn" onclick="doNewUser()">Создать аккаунт</button>
       </div>
-
       <!-- СУЩЕСТВУЮЩИЙ -->
-      <div id="pane-existing" style="display:none">
-        <div class="field">
-          <label id="lbl-code">Твой код</label>
+      <div id="pane-ex" style="display:none">
+        <div class="field"><label id="lbl-code">Твой код</label>
           <input id="ex-code" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-            style="font-family:'JetBrains Mono',monospace;font-size:12px"/>
-        </div>
-        <div class="field">
-          <label id="lbl-pin-ex">PIN-код</label>
-          <input id="ex-pin" type="password" placeholder="1234" maxlength="8" inputmode="numeric"/>
-        </div>
+            style="font-family:'JetBrains Mono',monospace;font-size:12px"/></div>
         <div class="auth-err" id="ex-err"></div>
         <button class="auth-btn" id="ex-btn" onclick="doExistingUser()">Войти по коду</button>
       </div>
@@ -338,9 +299,9 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
   </div>
 </div>
 
-<!-- MODAL -->
-<div class="overlay" id="overlay">
-  <div class="modal">
+<!-- SCRIPT MODAL -->
+<div class="overlay" id="overlay" onclick="overlayBg(event)">
+  <div class="modal" id="modal-inner">
     <div class="mhead">
       <span class="mtitle" id="m-title">—</span>
       <button class="xbtn" onclick="closeModal()">×</button>
@@ -350,429 +311,378 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
       <div class="mexec"><span class="dot"></span><span id="m-exec">—</span></div>
       <div class="mdesc" id="m-desc">—</div>
       <ul class="mfeats" id="m-feats"></ul>
-      <div class="plans-label" id="pl-label">ВЫБЕРИ ПЛАН</div>
+      <div class="plans-label" id="pl-lbl">ВЫБЕРИ ПЛАН</div>
       <div class="plans" id="m-plans"></div>
     </div>
     <div class="mfoot">
       <div>
         <div class="mfinal-rub" id="m-rub">— ₽</div>
         <div class="mfinal-usd" id="m-usd">≈ $—</div>
+        <div class="mfinal-slots" id="m-slots"></div>
       </div>
-      <button class="buybtn" id="m-buy" onclick="doBuy()">Купить</button>
+      <button class="buybtn" id="m-buy">Купить</button>
     </div>
   </div>
 </div>
 
 <script>
-const SUPABASE_URL = 'https://guzxxodewipzihypohoc.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1enh4b2Rld2lwemloeXBvaG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDk5NTIsImV4cCI6MjA5MjE4NTk1Mn0.xzyW9NHTa35OBxBdJy8I5JOpmOteGa0Tvg5vPsWOT-E';
-const WALLET   = '4100119480343964';
-const SITE     = 'https://is682573-code.github.io/ggshop.github.io';
+// ─────────────────────────────────────────────────────────
+//  CONFIG
+// ─────────────────────────────────────────────────────────
+const SB_URL  = 'https://guzxxodewipzihypohoc.supabase.co';
+// anon key безопасен для фронтенда — всю защиту обеспечивает RLS в Supabase
+const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1enh4b2Rld2lwemloeXBvaG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDk5NTIsImV4cCI6MjA5MjE4NTk1Mn0.xzyW9NHTa35OBxBdJy8I5JOpmOteGa0Tvg5vPsWOT-E';
+const WALLET  = '4100119480343964';
+const SITE    = 'https://is682573-code.github.io/ggshop.github.io';
 const USD_RATE = 90;
 
-// Белый список разрешённых хостов для raw_url
-const ALLOWED_RAW_HOSTS = ['raw.githubusercontent.com'];
+// Белый список разрешённых raw-доменов (фикс #3)
+const ALLOWED_RAW_HOSTS = [
+  'raw.githubusercontent.com',
+  'gist.githubusercontent.com',
+];
 
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = supabase.createClient(SB_URL, SB_KEY);
 
-// ══ SHA-256 с солью (pin + uid) — защита от rainbow table ══
-async function sha256(str) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
-}
-async function hashPin(pin, uid) { return sha256(pin + ':' + uid); }
-
-// ══ Валидация URL ══
-function isValidRawUrl(url) {
-  try { const u = new URL(url); return ALLOWED_RAW_HOSTS.includes(u.hostname); }
-  catch { return false; }
-}
-
-// ══ Sanitize ══
-function esc(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
-    .replace(/'/g,'&#39;');
-}
-
+// ─────────────────────────────────────────────────────────
+//  TRANSLATIONS
+// ─────────────────────────────────────────────────────────
 const T = {
   ru:{
     shop:'Магазин', cab:'Кабинет', login:'Войти',
     hero:'качественные скрипты по доступным ценам',
-    st_scripts:'скриптов', st_support:'поддержка', st_work:'рабочие',
+    st_s:'скриптов', st_sup:'поддержка', st_w:'рабочие',
     f_all:'Все', f_auto:'Авто', f_visual:'Визуал', f_combat:'Боёвка',
     auth_title:'Аккаунт', tab_new:'Новый', tab_ex:'Уже есть',
-    warn_title:'⚠ Сохрани свой код!',
-    warn_text:'После входа тебе выдастся уникальный код. Сохрани его — он нужен чтобы войти снова и увидеть покупки.',
+    warn_t:'⚠ Сохрани свой код!',
+    warn_b:'После входа выдастся уникальный код. Сохрани его — он нужен для повторного входа.',
     lbl_nick:'Никнейм', lbl_code:'Твой код',
-    lbl_pin:'PIN-код (4–8 цифр)', lbl_pin_ex:'PIN-код',
     ph_nick:'твой никнейм', ph_code:'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
     btn_new:'Создать аккаунт', btn_ex:'Войти по коду',
-    pl_label:'ВЫБЕРИ ПЛАН', buy:'Купить',
-    cab_title:'Мои покупки', empty:'Покупок пока нет',
+    pl_lbl:'ВЫБЕРИ ПЛАН', buy:'Купить',
+    slots_label:'Roblox-ники (слоты)', add_nick:'Добавить',
+    nick_ph:'RobloxUsername',
+    cab_lic:'МОИ ЛИЦЕНЗИИ', empty:'Покупок пока нет',
     logout:'Выйти', loading:'Загрузка...',
     copied:'Скопировано! Вставь в executor.',
-    err_fill:'Введи никнейм', err_pin:'PIN: от 4 до 8 цифр', err_code:'Введи код',
-    err_not_found:'Код не найден. Проверь правильность.',
-    err_wrong_pin:'Неверный PIN.',
+    err_fill:'Введи никнейм', err_code:'Введи код',
+    err_not_found:'Код не найден.',
+    err_url:'Недопустимый источник скрипта.',
     tag_auto:'Авто', tag_visual:'Визуал', tag_combat:'Боёвка',
     details:'Подробнее', from:'от',
     popular:'популярный', best:'выгодный',
-    pay:'Переходим к оплате...',
-    pay_desc:'Нажми кнопку ниже чтобы перейти к оплате ЮМани',
+    pay:'Открываем страницу оплаты...',
+    pay_desc:'Нажми кнопку чтобы перейти к оплате ЮМани',
     pay_go:'Перейти к оплате →',
     locked:'Войдите чтобы увидеть кабинет',
-    copy_btn:'Скопировать ссылку',
-    check_btn:'Проверить оплату',
-    pending:'⏳ ожидание оплаты',
+    copy_btn:'Скопировать',
     save_code:'Скопировать код',
-    code_saved:'Код скопирован! Сохрани его в надёжном месте.',
-    your_code:'Твой код для входа (нажми чтобы скопировать):',
-    popup_blocked:'Попап заблокирован — нажми кнопку ниже',
-    url_blocked:'⚠ Небезопасный URL в записи — обратись в поддержку',
-    // M-1
-    success_title:'Оплата получена!',
-    success_sub:'Скрипт появится в кабинете после подтверждения платежа.',
+    code_saved:'Код скопирован! Сохрани его.',
+    your_code:'Твой код для входа:',
+    status_active:'активна', status_pending:'ожидает оплаты', status_expired:'истекла',
+    expires:'истекает', never:'навсегда',
+    slots_full:'все слоты заняты',
+    pending_note:'Лицензия ожидает подтверждения оплаты. После оплаты в ЮМани сообщи нам в Discord — активируем вручную.',
+    slot_exists:'Этот ник уже добавлен',
+    slot_saved:'Ник добавлен',
+    slot_deleted:'Ник удалён',
+    slots_info:'слот | 7 дней', // используется динамически
+    plan_slots:'{n} ник | 7 дн',
   },
   en:{
     shop:'Shop', cab:'Cabinet', login:'Log in',
     hero:'quality scripts at affordable prices',
-    st_scripts:'scripts', st_support:'support', st_work:'working',
+    st_s:'scripts', st_sup:'support', st_w:'working',
     f_all:'All', f_auto:'Auto', f_visual:'Visual', f_combat:'Combat',
     auth_title:'Account', tab_new:'New user', tab_ex:'I have a code',
-    warn_title:'⚠ Save your code!',
-    warn_text:'After signing in you will receive a unique code. Save it — you need it to log in again and see your purchases.',
+    warn_t:'⚠ Save your code!',
+    warn_b:'After signing in you will receive a unique code. Save it — you need it to log in again.',
     lbl_nick:'Nickname', lbl_code:'Your code',
-    lbl_pin:'PIN (4–8 digits)', lbl_pin_ex:'PIN',
     ph_nick:'your nickname', ph_code:'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
     btn_new:'Create account', btn_ex:'Log in with code',
-    pl_label:'CHOOSE PLAN', buy:'Buy now',
-    cab_title:'My purchases', empty:'No purchases yet',
+    pl_lbl:'CHOOSE PLAN', buy:'Buy now',
+    slots_label:'Roblox usernames (slots)', add_nick:'Add',
+    nick_ph:'RobloxUsername',
+    cab_lic:'MY LICENSES', empty:'No purchases yet',
     logout:'Log out', loading:'Loading...',
     copied:'Copied! Paste into executor.',
-    err_fill:'Enter a nickname', err_pin:'PIN: 4 to 8 digits', err_code:'Enter your code',
-    err_not_found:'Code not found. Check it and try again.',
-    err_wrong_pin:'Wrong PIN.',
+    err_fill:'Enter a nickname', err_code:'Enter your code',
+    err_not_found:'Code not found.',
+    err_url:'Invalid script source.',
     tag_auto:'Auto', tag_visual:'Visual', tag_combat:'Combat',
     details:'Details', from:'from',
     popular:'popular', best:'best value',
-    pay:'Redirecting to payment...',
-    pay_desc:'Click the button below to go to YooMoney payment',
+    pay:'Opening payment page...',
+    pay_desc:'Click the button to go to YooMoney payment',
     pay_go:'Go to payment →',
     locked:'Log in to see your cabinet',
-    copy_btn:'Copy link',
-    check_btn:'Check payment',
-    pending:'⏳ awaiting payment',
+    copy_btn:'Copy',
     save_code:'Copy code',
-    code_saved:'Code copied! Store it somewhere safe.',
-    your_code:'Your login code (click to copy):',
-    popup_blocked:'Popup blocked — click the button below',
-    url_blocked:'⚠ Unsafe URL in record — contact support',
-    // M-1
-    success_title:'Payment received!',
-    success_sub:'Your script will appear in the cabinet after payment confirmation.',
+    code_saved:'Code copied! Store it safely.',
+    your_code:'Your login code:',
+    status_active:'active', status_pending:'pending payment', status_expired:'expired',
+    expires:'expires', never:'forever',
+    slots_full:'all slots taken',
+    pending_note:'License is awaiting payment confirmation. After paying via YooMoney, contact us on Discord — we\'ll activate it manually.',
+    slot_exists:'This username is already added',
+    slot_saved:'Username added',
+    slot_deleted:'Username removed',
+    plan_slots:'{n} slot | 7 days',
   }
 };
-
 let lang = localStorage.getItem('gg_lang') || 'ru';
 const t = k => T[lang][k] || k;
 const rubToUsd = r => '$' + (r / USD_RATE).toFixed(2);
 
-function setLang(l){
+function setLang(l) {
   lang = l; localStorage.setItem('gg_lang', l);
-  document.getElementById('btn-ru').classList.toggle('on', l === 'ru');
-  document.getElementById('btn-en').classList.toggle('on', l === 'en');
-  applyT(); renderGrid(currentCat);
+  document.getElementById('btn-ru').classList.toggle('on', l==='ru');
+  document.getElementById('btn-en').classList.toggle('on', l==='en');
+  applyT();
+  renderGrid(currentCat);
   if (curScript) renderPlans();
   updateNav();
 }
-
-function applyT(){
-  const map = {
-    'n-shop':'shop', 'auth-btn':'login', 'hero-sub':'hero',
-    'st-scripts':'st_scripts', 'st-support':'st_support', 'st-work':'st_work',
-    'f-all':'f_all', 'f-auto':'f_auto', 'f-visual':'f_visual', 'f-combat':'f_combat',
-    'auth-title':'auth_title', 'tab-new':'tab_new', 'tab-existing':'tab_ex',
-    'warn-title':'warn_title', 'warn-text':'warn_text',
-    'lbl-nick':'lbl_nick', 'lbl-code':'lbl_code',
-    'lbl-pin':'lbl_pin', 'lbl-pin-ex':'lbl_pin_ex',
-    'new-btn':'btn_new', 'ex-btn':'btn_ex',
-    'pl-label':'pl_label', 'm-buy':'buy',
+function applyT() {
+  const m = {
+    'n-shop':'shop','hero-sub':'hero','st-s':'st_s','st-sup':'st_sup','st-w':'st_w',
+    'f-all':'f_all','f-auto':'f_auto','f-visual':'f_visual','f-combat':'f_combat',
+    'auth-title':'auth_title','tab-new':'tab_new','tab-ex':'tab_ex',
+    'warn-t':'warn_t','warn-b':'warn_b','lbl-nick':'lbl_nick','lbl-code':'lbl_code',
+    'new-btn':'btn_new','ex-btn':'btn_ex','pl-lbl':'pl_lbl','m-buy':'buy',
+    'auth-btn':'login', // фикс #8
   };
-  for (const [id, key] of Object.entries(map)) {
+  for (const [id,key] of Object.entries(m)) {
     const el = document.getElementById(id);
     if (el) el.textContent = t(key);
   }
-  const nn = document.getElementById('new-nick'); if (nn) nn.placeholder = t('ph_nick');
-  const ec = document.getElementById('ex-code');  if (ec) ec.placeholder = t('ph_code');
+  const nn = document.getElementById('new-nick'); if(nn) nn.placeholder = t('ph_nick');
+  const ec = document.getElementById('ex-code');  if(ec) ec.placeholder = t('ph_code');
 }
 
-// ══ SESSION: sessionStorage (H-2 fix) ══
-const store = {
-  get:    k => { try { return JSON.parse(sessionStorage.getItem(k)); } catch { return null; } },
-  set:    (k,v) => sessionStorage.setItem(k, JSON.stringify(v)),
-  remove: k => sessionStorage.removeItem(k),
-};
-
+// ─────────────────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────────────────
 let user = null, curScript = null, curPlanIdx = 0, currentCat = 'all';
+let cabinetRequestId = 0; // фикс #6 — защита от гонки запросов
 
-(function restoreLocal(){
-  const saved = store.get('gg_anon');
-  if (saved) user = saved;
+// Восстановление сессии из localStorage
+(function restoreSession() {
+  const s = localStorage.getItem('gg_anon');
+  if (s) { try { user = JSON.parse(s); } catch(e) {} }
 })();
 
-function isValidPin(pin){ return /^\d{4,8}$/.test(pin); }
-
-// ══ НОВЫЙ ПОЛЬЗОВАТЕЛЬ ══
-async function doNewUser(){
+// ─────────────────────────────────────────────────────────
+//  AUTH
+// ─────────────────────────────────────────────────────────
+async function doNewUser() {
   const nick = document.getElementById('new-nick').value.trim();
-  const pin  = document.getElementById('new-pin').value.trim();
   const err  = document.getElementById('new-err');
   const btn  = document.getElementById('new-btn');
-
   if (!nick) { err.textContent = t('err_fill'); return; }
-  if (!isValidPin(pin)) { err.textContent = t('err_pin'); return; }
-
   btn.disabled = true; btn.textContent = '...'; err.textContent = '';
 
   const { data, error } = await sb.auth.signInAnonymously();
-  if (error) { err.textContent = error.message; btn.disabled = false; btn.textContent = t('btn_new'); return; }
+  if (error) { err.textContent = error.message; btn.disabled=false; btn.textContent=t('btn_new'); return; }
 
-  const uid     = data.user.id;
-  const pinHash = await hashPin(pin, uid);
-
-  await sb.from('profiles').upsert({ id: uid, nickname: nick, pin_hash: pinHash });
-
+  const uid = data.user.id;
+  await sb.from('profiles').upsert({ id: uid, nickname: nick });
   user = { id: uid, nick };
-  store.set('gg_anon', user);
+  localStorage.setItem('gg_anon', JSON.stringify(user));
   btn.disabled = false; btn.textContent = t('btn_new');
-  showCodeModal(uid, nick);
+
+  // Показываем код — фикс #9: сбрасываем curScript
+  curScript = null;
+  showCodeScreen(uid, nick);
 }
 
-// ══ ВОЙТИ ПО КОДУ ══
-async function doExistingUser(){
+async function doExistingUser() {
   const code = document.getElementById('ex-code').value.trim();
-  const pin  = document.getElementById('ex-pin').value.trim();
   const err  = document.getElementById('ex-err');
   const btn  = document.getElementById('ex-btn');
-
   if (!code) { err.textContent = t('err_code'); return; }
-  if (!isValidPin(pin)) { err.textContent = t('err_pin'); return; }
+
+  // Фикс #4: базовая валидация формата UUID
+  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRe.test(code)) { err.textContent = t('err_not_found'); return; }
 
   btn.disabled = true; btn.textContent = '...'; err.textContent = '';
 
-  const { data, error } = await sb.from('profiles')
-    .select('nickname, pin_hash').eq('id', code).single();
-
+  const { data, error } = await sb.from('profiles').select('nickname').eq('id', code).single();
   if (error || !data) {
     err.textContent = t('err_not_found');
     btn.disabled = false; btn.textContent = t('btn_ex'); return;
   }
 
-  if (data.pin_hash) {
-    const inputHash = await hashPin(pin, code);
-    if (inputHash !== data.pin_hash) {
-      err.textContent = t('err_wrong_pin');
-      btn.disabled = false; btn.textContent = t('btn_ex'); return;
-    }
-  }
-
   user = { id: code, nick: data.nickname };
-  store.set('gg_anon', user);
+  localStorage.setItem('gg_anon', JSON.stringify(user));
   btn.disabled = false; btn.textContent = t('btn_ex');
-  updateNav(); goto('shop');
+  updateNav();
+  goto('shop');
   toast('👋 ' + data.nickname, 'ok');
 }
 
-// ══ ВЫХОД ══
-function doLogout(){
+function doLogout() {
   sb.auth.signOut();
-  store.remove('gg_anon');
+  localStorage.removeItem('gg_anon');
   user = null;
-  updateNav(); goto('shop');
-  toast('👋', 'ok');
+  updateNav();
+  goto('shop');
 }
 
-// ══ КОД ПОСЛЕ РЕГИСТРАЦИИ ══
-function showCodeModal(uid, nick){
-  const savedScript  = curScript;
-  const savedPlanIdx = curPlanIdx;
-  curScript = null;
-
-  document.getElementById('m-title').textContent = nick + ' ✦';
-  document.getElementById('m-img').innerHTML = '<div style="font-size:48px;line-height:1">🎉</div>';
-  document.getElementById('m-exec').textContent = 'Сохрани код';
-  document.getElementById('m-desc').innerHTML = '<span style="color:var(--text)">' + esc(t('warn_text')) + '</span>';
+function showCodeScreen(uid, nick) {
+  // Показываем код через отдельный оверлей, не через modal скриптов
+  document.getElementById('m-title').textContent = '✦ ' + nick;
+  document.getElementById('m-img').innerHTML = '<div style="font-size:56px;line-height:1">🎉</div>';
+  document.getElementById('m-exec').textContent = t('your_code');
+  document.getElementById('m-desc').innerHTML = `<span style="color:var(--text)">${t('warn_b')}</span>`;
   document.getElementById('m-feats').innerHTML = '';
-  document.getElementById('pl-label').textContent = t('your_code');
+  document.getElementById('pl-lbl').textContent = '';
   document.getElementById('m-plans').innerHTML =
-    '<div class="code-hint" onclick="copyCode(\'' + esc(uid) + '\')" style="width:100%">' + esc(uid) + '</div>';
+    `<div class="code-box" style="width:100%" onclick="copyCode('${uid}')">${uid}</div>`;
   document.getElementById('m-rub').textContent = '';
   document.getElementById('m-usd').textContent = '';
-
-  const buyBtn = document.getElementById('m-buy');
-  buyBtn.textContent = t('save_code');
-  buyBtn.onclick = () => copyCode(uid);
-
-  const overlay = document.getElementById('overlay');
-  const restoreAndClose = () => {
-    curScript  = savedScript;
-    curPlanIdx = savedPlanIdx;
-    buyBtn.onclick = doBuy;
-    overlay.classList.remove('open');
-    overlay.removeEventListener('click', codeOverlayGuard);
-  };
-  // H-3 FIX: именованный guard — не конфликтует с closeModal
-  const codeOverlayGuard = (e) => { if (e.target.id === 'overlay') restoreAndClose(); };
-  overlay.addEventListener('click', codeOverlayGuard, { once: true });
-  document.querySelector('.xbtn').onclick = restoreAndClose;
-  overlay.classList.add('open');
+  document.getElementById('m-slots').textContent = '';
+  const btn = document.getElementById('m-buy');
+  btn.textContent = t('save_code');
+  btn.onclick = () => copyCode(uid); // фикс #9: явно переписываем onclick
+  document.getElementById('overlay').classList.add('open');
   updateNav();
 }
 
-function copyCode(uid){
+function copyCode(uid) {
   navigator.clipboard.writeText(uid).then(() => toast(t('code_saved'), 'ok'));
 }
 
-function switchTab(tab){
-  document.getElementById('tab-new').classList.toggle('on', tab === 'new');
-  document.getElementById('tab-existing').classList.toggle('on', tab === 'existing');
-  document.getElementById('pane-new').style.display      = tab === 'new'      ? 'block' : 'none';
-  document.getElementById('pane-existing').style.display = tab === 'existing' ? 'block' : 'none';
+function switchTab(tab) {
+  document.getElementById('tab-new').classList.toggle('on', tab==='new');
+  document.getElementById('tab-ex').classList.toggle('on',  tab==='ex');
+  document.getElementById('pane-new').style.display = tab==='new' ? 'block' : 'none';
+  document.getElementById('pane-ex').style.display  = tab==='ex'  ? 'block' : 'none';
 }
 
-function updateNav(){
+function updateNav() {
   const cb = document.getElementById('cab-btn');
   const ab = document.getElementById('auth-btn');
   if (user) { cb.textContent = user.nick; ab.style.display = 'none'; }
   else       { cb.textContent = t('cab');  ab.style.display = ''; }
 }
-
-function cabClick(){ if (user) goto('cabinet'); else goto('auth'); }
-
-function goto(p){
+function cabClick() { if (user) goto('cabinet'); else goto('auth'); }
+function goto(p) {
   document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
   document.getElementById('page-' + p).classList.add('active');
   if (p === 'cabinet') renderCabinet();
 }
 
-// ══ M-1 FIX: обработка ?label= прямо в index.html ══
-// ЮМани редиректит обратно на SITE/?label=gg_X_TIMESTAMP
-// Показываем баннер и чистим URL чтобы при F5 не показывало повторно
-(function handleSuccessRedirect(){
-  const params = new URLSearchParams(location.search);
-  const label  = params.get('label');
-  if (!label || !label.startsWith('gg_')) return;
-
-  // Чистим URL (без перезагрузки)
-  history.replaceState(null, '', location.pathname);
-
-  const banner = document.getElementById('success-banner');
-  if (!banner) return;
-  banner.style.display = 'block';
-
-  // Тексты подставятся после setLang() — используем setTimeout(0)
-  setTimeout(() => {
-    const titleEl = document.getElementById('success-title');
-    const subEl   = document.getElementById('success-sub');
-    if (titleEl) titleEl.textContent = t('success_title');
-    if (subEl)   subEl.textContent   = t('success_sub');
-  }, 0);
-
-  // Скрываем баннер через 10 секунд
-  setTimeout(() => { banner.style.display = 'none'; }, 10000);
-})();
-
-// ══ SCRIPTS ══
+// ─────────────────────────────────────────────────────────
+//  SCRIPTS DATA
+// ─────────────────────────────────────────────────────────
 const SCRIPTS = [
-  {id:1, cat:'auto', emoji:'🚩', img:'', title:'Flag Runner',
-   short:{ru:'AFK-ходилка для тайкунов', en:'AFK walker for tycoons'},
-   desc:{ru:'Ставишь флаги на карте — скрипт идёт по ним сам. Идеально на ночь.',
-         en:'Place flags on the map — the script walks them automatically. Perfect overnight.'},
-   feats:{ru:['Неограниченное кол-во точек','Настройка времени ожидания','Обход зависаний','Работает после респавна'],
-          en:['Unlimited waypoints','Configurable wait time','Hang detection','Works after respawn']},
-   exec:'Xeno / Solara',
-   raw:'https://raw.githubusercontent.com/xqvijbgowwwqagzhrltxovf/FlagRunnerGGshop/refs/heads/main/FlagRunner',
-   plans:[{name:{ru:'Навсегда', en:'Forever'}, price:50, badge:''}]},
-  {id:2, cat:'visual', emoji:'🌌', img:'', title:'Sky Replacer',
-   short:{ru:'Замена неба в игре', en:'Sky replacement'},
-   desc:{ru:'Меняет стандартное небо Roblox на кастомное. 5 пресетов: ночь, закат, киберпанк.',
-         en:'Replaces the default Roblox sky. 5 presets: night, sunset, cyberpunk.'},
-   feats:{ru:['5 готовых пресетов','Ночь / закат / киберпанк','Без влияния на FPS','Мгновенное переключение'],
-          en:['5 ready presets','Night / sunset / cyberpunk','No FPS impact','Instant switching']},
-   exec:'Any',
-   raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/skyreplacer.lua',
-   plans:[
-     {name:{ru:'7 дней',  en:'7 days'},   price:59,  badge:''},
-     {name:{ru:'30 дней', en:'30 days'},  price:249, badge:'popular'},
-     {name:{ru:'Навсегда',en:'Forever'},  price:499, badge:'best',
-      sale:{ru:'скидка 200 ₽ (было 699 ₽)', en:'save 200 ₽ (was 699 ₽)'}},
-   ]},
-  {id:3, cat:'visual', emoji:'🌿', img:'', title:'Grass Changer',
-   short:{ru:'Замена травы и текстур', en:'Grass & texture replacement'},
-   desc:{ru:'Кастомные текстуры земли и травы. Несколько текстурных паков в комплекте.',
-         en:'Custom ground and grass textures. Several texture packs included.'},
-   feats:{ru:['Замена травы / песка / камня','Несколько текстурных паков','Лёгкий на FPS','Простая настройка'],
-          en:['Replace grass / sand / stone','Multiple texture packs','Light on FPS','Easy configuration']},
-   exec:'Any',
-   raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/grasschanger.lua',
-   plans:[
-     {name:{ru:'7 дней',  en:'7 days'},   price:59,  badge:''},
-     {name:{ru:'30 дней', en:'30 days'},  price:199, badge:'popular'},
-     {name:{ru:'Навсегда',en:'Forever'},  price:449, badge:'best'},
-   ]},
-  {id:4, cat:'combat', emoji:'🎯', img:'', title:'AimHelper',
-   short:{ru:'Вспомогательный прицел', en:'Aim assistant'},
-   desc:{ru:'Подсветка хитбоксов и индикаторы дистанции. Лёгкая помощь без автоприцела.',
-         en:'Hitbox highlight and distance indicators. Light assist without auto-aim.'},
-   feats:{ru:['Подсветка хитбокса','Индикатор дистанции','Настройка цвета','Большинство игр'],
-          en:['Hitbox highlight','Distance indicator','Color customization','Most games']},
-   exec:'Xeno / Synapse',
-   raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/aimhelper.lua',
-   plans:[
-     {name:{ru:'7 дней',  en:'7 days'},   price:59,  badge:''},
-     {name:{ru:'30 дней', en:'30 days'},  price:199, badge:'popular'},
-     {name:{ru:'Навсегда',en:'Forever'},  price:399, badge:'best'},
-   ]},
-  {id:5, cat:'auto', emoji:'⚙️', img:'', title:'Farm Runner',
-   short:{ru:'Авто-фарм ресурсов', en:'Auto resource farmer'},
-   desc:{ru:'Автоматически собирает ресурсы по карте. Подходит для большинства тайкунов.',
-         en:'Automatically collects resources around the map. Works with most tycoons.'},
-   feats:{ru:['Автосбор ресурсов','Петля по маршруту','Пауза / старт','Уведомление о круге'],
-          en:['Auto resource collection','Route loop','Pause / start','Lap notification']},
-   exec:'Xeno / Solara',
-   raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/farmrunner.lua',
-   plans:[
-     {name:{ru:'7 дней',  en:'7 days'},   price:59,  badge:''},
-     {name:{ru:'30 дней', en:'30 days'},  price:249, badge:'popular'},
-     {name:{ru:'Навсегда',en:'Forever'},  price:499, badge:'best'},
-   ]},
+  {
+    id:1, cat:'auto', emoji:'🚩', img:'',
+    title:'Flag Runner',
+    short:{ru:'AFK-ходилка для тайкунов', en:'AFK walker for tycoons'},
+    desc:{ru:'Ставишь флаги — скрипт идёт сам. Идеально оставить на ночь.',
+          en:'Place flags — the script walks automatically. Perfect overnight.'},
+    feats:{ru:['Неограниченное кол-во точек','Настройка времени ожидания','Обход зависаний','Работает после респавна'],
+           en:['Unlimited waypoints','Configurable wait','Hang detection','Works after respawn']},
+    exec:'Xeno / Solara',
+    raw:'https://raw.githubusercontent.com/xqvijbgowwwqagzhrltxovf/FlagRunnerGGshop/refs/heads/main/FlagRunner',
+    plans:[
+      {key:'forever', name:{ru:'Навсегда',en:'Forever'}, price:50, slots:7, badge:''},
+    ]
+  },
+  {
+    id:2, cat:'visual', emoji:'🌌', img:'',
+    title:'Sky Replacer',
+    short:{ru:'Замена неба в игре', en:'Sky replacement'},
+    desc:{ru:'Меняет стандартное небо Roblox. 5 пресетов: ночь, закат, киберпанк.',
+          en:'Replaces the default Roblox sky. 5 presets: night, sunset, cyberpunk.'},
+    feats:{ru:['5 готовых пресетов','Без влияния на FPS','Мгновенное переключение'],
+           en:['5 ready presets','No FPS impact','Instant switching']},
+    exec:'Any',
+    raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/skyreplacer.lua',
+    plans:[
+      {key:'7d',      name:{ru:'7 дней',en:'7 days'},    price:59,  slots:1, badge:''},
+      {key:'30d',     name:{ru:'30 дней',en:'30 days'},  price:249, slots:2, badge:'popular'},
+      {key:'forever', name:{ru:'Навсегда',en:'Forever'}, price:499, slots:7, badge:'best',
+       sale:{ru:'скидка 200 ₽ (было 699 ₽)',en:'save 200 ₽ (was 699 ₽)'}},
+    ]
+  },
+  {
+    id:3, cat:'visual', emoji:'🌿', img:'',
+    title:'Grass Changer',
+    short:{ru:'Замена травы и текстур', en:'Grass & texture replacement'},
+    desc:{ru:'Кастомные текстуры земли. Несколько паков в комплекте.',
+          en:'Custom ground textures. Several packs included.'},
+    feats:{ru:['Замена травы / песка / камня','Несколько паков','Лёгкий на FPS'],
+           en:['Replace grass / sand / stone','Multiple packs','Light on FPS']},
+    exec:'Any',
+    raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/grasschanger.lua',
+    plans:[
+      {key:'7d',      name:{ru:'7 дней',en:'7 days'},    price:59,  slots:1, badge:''},
+      {key:'30d',     name:{ru:'30 дней',en:'30 days'},  price:199, slots:2, badge:'popular'},
+      {key:'forever', name:{ru:'Навсегда',en:'Forever'}, price:449, slots:7, badge:'best'},
+    ]
+  },
+  {
+    id:4, cat:'combat', emoji:'🎯', img:'',
+    title:'AimHelper',
+    short:{ru:'Вспомогательный прицел', en:'Aim assistant'},
+    desc:{ru:'Подсветка хитбоксов и индикаторы дистанции.',
+          en:'Hitbox highlight and distance indicators.'},
+    feats:{ru:['Подсветка хитбокса','Индикатор дистанции','Настройка цвета'],
+           en:['Hitbox highlight','Distance indicator','Color customization']},
+    exec:'Xeno / Synapse',
+    raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/aimhelper.lua',
+    plans:[
+      {key:'7d',      name:{ru:'7 дней',en:'7 days'},    price:59,  slots:1, badge:''},
+      {key:'30d',     name:{ru:'30 дней',en:'30 days'},  price:199, slots:2, badge:'popular'},
+      {key:'forever', name:{ru:'Навсегда',en:'Forever'}, price:399, slots:7, badge:'best'},
+    ]
+  },
+  {
+    id:5, cat:'auto', emoji:'⚙️', img:'',
+    title:'Farm Runner',
+    short:{ru:'Авто-фарм ресурсов', en:'Auto resource farmer'},
+    desc:{ru:'Автоматически собирает ресурсы. Подходит для большинства тайкунов.',
+          en:'Automatically collects resources. Works with most tycoons.'},
+    feats:{ru:['Автосбор ресурсов','Петля по маршруту','Пауза / старт'],
+           en:['Auto resource collection','Route loop','Pause / start']},
+    exec:'Xeno / Solara',
+    raw:'https://raw.githubusercontent.com/is682573-code/ggshop.github.io/main/scripts/farmrunner.lua',
+    plans:[
+      {key:'7d',      name:{ru:'7 дней',en:'7 days'},    price:59,  slots:1, badge:''},
+      {key:'30d',     name:{ru:'30 дней',en:'30 days'},  price:249, slots:2, badge:'popular'},
+      {key:'forever', name:{ru:'Навсегда',en:'Forever'}, price:499, slots:7, badge:'best'},
+    ]
+  },
 ];
 
-function filter(cat, btn){
-  if (!btn) return;
+// ─────────────────────────────────────────────────────────
+//  GRID
+// ─────────────────────────────────────────────────────────
+function filterGrid(cat, btn) {
+  // фикс #7: проверяем что btn — живой DOM-элемент
   document.querySelectorAll('.fb').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  currentCat = cat;
-  renderGrid(cat);
+  if (btn && btn.classList) btn.classList.add('on');
+  currentCat = cat; renderGrid(cat);
 }
-
-function renderGrid(cat = 'all'){
+function renderGrid(cat = 'all') {
   const g = document.getElementById('grid'); g.innerHTML = '';
   SCRIPTS.filter(s => cat === 'all' || s.cat === cat).forEach(s => {
-    const prices   = s.plans.map(p => p.price);
-    const minP     = Math.min(...prices), maxP = Math.max(...prices);
+    const prices = s.plans.map(p => p.price);
+    const minP = Math.min(...prices), maxP = Math.max(...prices);
     const priceStr = minP === maxP ? `${minP} ₽` : `${t('from')} ${minP} ₽`;
     const usdStr   = minP === maxP ? rubToUsd(minP) : `${rubToUsd(minP)} – ${rubToUsd(maxP)}`;
-    const imgHtml  = s.img
-      ? `<div class="card-img"><img src="${esc(s.img)}" alt="${esc(s.title)}" loading="lazy"/></div>`
+    const imgH = s.img
+      ? `<div class="card-img"><img src="${s.img}" alt="${s.title}" loading="lazy"/></div>`
       : `<div class="card-img">${s.emoji}</div>`;
     const d = document.createElement('div'); d.className = 'card';
-    d.innerHTML = `${imgHtml}<div class="card-body">
-      <span class="ctag ${esc(s.cat)}">${t('tag_' + s.cat)}</span>
-      <div class="ctitle">${esc(s.title)}</div>
-      <div class="cdesc">${esc(s.short[lang])}</div>
+    d.innerHTML = `${imgH}<div class="card-body">
+      <span class="ctag ${s.cat}">${t('tag_'+s.cat)}</span>
+      <div class="ctitle">${s.title}</div>
+      <div class="cdesc">${s.short[lang]}</div>
       <div class="cfoot">
         <div><div class="cprice">${priceStr}</div><div class="cprice-usd">${usdStr}</div></div>
         <button class="cbtn" onclick="openModal(${s.id})">${t('details')}</button>
@@ -781,214 +691,255 @@ function renderGrid(cat = 'all'){
   });
 }
 
-function openModal(id){
+// ─────────────────────────────────────────────────────────
+//  MODAL
+// ─────────────────────────────────────────────────────────
+function openModal(id) {
   curScript = SCRIPTS.find(s => s.id === id);
   if (!curScript) return;
   const defIdx = curScript.plans.findIndex(p => p.badge === 'popular');
-  curPlanIdx   = defIdx >= 0 ? defIdx : 0;
+  curPlanIdx = defIdx >= 0 ? defIdx : 0;
 
   document.getElementById('m-title').textContent = curScript.title;
   document.getElementById('m-exec').textContent  = curScript.exec;
   document.getElementById('m-desc').textContent  = curScript.desc[lang];
-
   const mi = document.getElementById('m-img');
   mi.innerHTML = curScript.img
-    ? `<img src="${esc(curScript.img)}" alt="${esc(curScript.title)}"/>`
+    ? `<img src="${curScript.img}" alt="${curScript.title}"/>`
     : curScript.emoji;
-
   const fl = document.getElementById('m-feats'); fl.innerHTML = '';
   curScript.feats[lang].forEach(f => {
     const li = document.createElement('li'); li.textContent = f; fl.appendChild(li);
   });
-
-  document.getElementById('pl-label').textContent = t('pl_label');
-  document.getElementById('m-buy').textContent    = t('buy');
-  document.getElementById('m-buy').onclick        = doBuy;
-  document.querySelector('.xbtn').onclick         = closeModal;
-
+  document.getElementById('pl-lbl').textContent = t('pl_lbl');
+  const buyBtn = document.getElementById('m-buy');
+  buyBtn.textContent = t('buy');
+  buyBtn.onclick = doBuy; // фикс #9: сбрасываем handler
   renderPlans();
   document.getElementById('overlay').classList.add('open');
 }
 
-function renderPlans(){
+function renderPlans() {
   const c = document.getElementById('m-plans'); c.innerHTML = '';
   curScript.plans.forEach((p, i) => {
     const sel = i === curPlanIdx;
-    const d   = document.createElement('div'); d.className = 'plan' + (sel ? ' selected' : '');
+    const d = document.createElement('div'); d.className = 'plan' + (sel ? ' selected' : '');
     let badge = '';
     if (p.badge === 'popular') badge = `<div class="plan-badge">${t('popular')}</div>`;
     if (p.badge === 'best')    badge = `<div class="plan-badge">${t('best')}</div>`;
-    const sale = p.sale ? `<div class="plan-sale">${esc(p.sale[lang])}</div>` : '';
-    d.innerHTML = `${badge}<div class="plan-name">${esc(p.name[lang])}</div>
+    const sale = p.sale ? `<div class="plan-sale">${p.sale[lang]}</div>` : '';
+    const slotsLabel = lang === 'ru'
+      ? `${p.slots} ${p.slots===1?'ник':p.slots<5?'ника':'ников'}`
+      : `${p.slots} ${p.slots===1?'slot':'slots'}`;
+    d.innerHTML = `${badge}
+      <div class="plan-name">${p.name[lang]}</div>
       <div class="plan-rub">${p.price}<span style="font-size:12px;color:var(--muted)"> ₽</span></div>
-      <div class="plan-usd">${rubToUsd(p.price)}</div>${sale}`;
+      <div class="plan-usd">${rubToUsd(p.price)}</div>
+      <div class="plan-slots">👤 ${slotsLabel}</div>${sale}`;
     d.onclick = () => { curPlanIdx = i; renderPlans(); };
     c.appendChild(d);
   });
   const sel = curScript.plans[curPlanIdx];
   document.getElementById('m-rub').textContent = sel.price + ' ₽';
   document.getElementById('m-usd').textContent = '≈ ' + rubToUsd(sel.price);
+  const slotsLabel = lang === 'ru'
+    ? `👤 ${sel.slots} ${sel.slots===1?'ник':sel.slots<5?'ника':'ников'}`
+    : `👤 ${sel.slots} ${sel.slots===1?'slot':'slots'}`;
+  document.getElementById('m-slots').textContent = slotsLabel;
 }
 
-// H-3 FIX: overlayClick удалена — логика закрытия только через closeModal и codeOverlayGuard
-function closeModal(){
+function closeModal() {
   document.getElementById('overlay').classList.remove('open');
 }
+function overlayBg(e) { if (e.target.id === 'overlay') closeModal(); }
 
-// ══ ПОКУПКА ══
-function doBuy(){
+// ─────────────────────────────────────────────────────────
+//  BUY — фикс #2: запись создаётся с paid:false, активация вручную
+// ─────────────────────────────────────────────────────────
+function doBuy() {
+  if (!curScript) return; // фикс #9
   if (!user) { closeModal(); goto('auth'); return; }
-  if (!curScript) return;
 
   const plan  = curScript.plans[curPlanIdx];
   const label = 'gg_' + curScript.id + '_' + Date.now();
 
-  // M-1 FIX: successURL указывает обратно на index с ?label=
-  const successUrl = SITE + '/?label=' + label;
-
-  const url = 'https://yoomoney.ru/quickpay/confirm'
-    + '?receiver=' + WALLET
+  // Строим URL синхронно ДО любого await — браузер не заблокирует попап
+  const payUrl = 'https://yoomoney.ru/quickpay/confirm'
+    + '?receiver='       + WALLET
     + '&quickpay-form=button'
-    + '&targets=' + encodeURIComponent('GGshop: ' + curScript.title + ' (' + plan.name[lang] + ')')
-    + '&sum=' + plan.price
-    + '&label=' + label
-    + '&successURL=' + encodeURIComponent(successUrl);
+    + '&targets='        + encodeURIComponent('GGshop: ' + curScript.title + ' (' + plan.name[lang] + ')')
+    + '&sum='            + plan.price
+    + '&label='          + label
+    + '&successURL='     + encodeURIComponent(SITE + '/success.html?label=' + label);
 
-  const win = window.open(url, '_blank');
+  const win = window.open(payUrl, '_blank');
   closeModal();
 
   if (win) {
     toast(t('pay'), 'ok');
   } else {
-    document.getElementById('pay-title').textContent = curScript.title + ' — ' + plan.price + ' ₽';
-    document.getElementById('pay-desc').textContent  = t('pay_desc');
-    document.getElementById('pay-link').href         = url;
-    document.getElementById('pay-link').textContent  = t('pay_go');
+    // Попап заблокирован — fallback
+    document.getElementById('pf-title').textContent = curScript.title + ' — ' + plan.price + ' ₽';
+    document.getElementById('pf-desc').textContent  = t('pay_desc');
+    document.getElementById('pf-link').href         = payUrl;
+    document.getElementById('pf-link').textContent  = t('pay_go');
     document.getElementById('pay-overlay').classList.add('open');
-    toast(t('popup_blocked'), 'err');
   }
 
-  // C-2 FIX: НЕ передаём поле paid вообще — БД сама поставит DEFAULT false.
-  // Клиент физически не может отправить paid:true, потому что поле отсутствует в запросе.
-  // RLS-политика "own_purchases_insert" WITH CHECK (paid = false) — дополнительный барьер.
-  sb.from('purchases').insert({
-    user_id     : user.id,
-    script_id   : curScript.id,
+  // Создаём лицензию (paid:false) — активируется вручную после подтверждения оплаты
+  sb.from('licenses').insert({
+    user_id:      user.id,
+    script_id:    curScript.id,
     script_title: curScript.title,
-    plan_name   : plan.name[lang],
-    price_rub   : plan.price,
-    raw_url     : curScript.raw,
-    label
-    // paid — НЕ передаём: DEFAULT false на стороне БД
-  }).then(({ error }) => {
-    // L-1 FIX: обрабатываем ошибку вставки
-    if (error) {
-      console.error('Purchase insert error:', error.message);
-      toast('⚠ Ошибка записи покупки', 'err');
-    }
+    plan_key:     plan.key,
+    max_slots:    plan.slots,
+    price_rub:    plan.price,
+    label:        label,
+    active:       false,
+    expires_at:   null,
   });
 }
 
-// ══ КАБИНЕТ ══
-async function renderCabinet(){
+// ─────────────────────────────────────────────────────────
+//  CABINET
+// ─────────────────────────────────────────────────────────
+async function renderCabinet() {
+  const reqId = ++cabinetRequestId; // фикс #6
   const c = document.getElementById('cab-content');
-  if (!user){
-    c.innerHTML = `<div class="empty" style="padding:60px 28px">
-      <p style="font-size:36px;margin-bottom:12px">🔒</p><p>${t('locked')}</p></div>`;
+  if (!user) {
+    c.innerHTML = `<div class="empty" style="padding:60px"><p style="font-size:36px;margin-bottom:12px">🔒</p><p>${t('locked')}</p></div>`;
     return;
   }
-
-  const snapshotUid = user.id;
-
   c.innerHTML = `<div class="cab-header">
-    <div class="avatar">${esc(user.nick[0].toUpperCase())}</div>
-    <div><div class="cab-name">${esc(user.nick)}</div>
-    <div class="cab-meta">ID: ${esc(user.id.slice(0,8))}...</div></div>
+    <div class="avatar">${user.nick[0].toUpperCase()}</div>
+    <div><div class="cab-name">${user.nick}</div>
+    <div class="cab-meta">ID: ${user.id.slice(0,8)}…</div></div>
     <button class="cab-logout" onclick="doLogout()">${t('logout')}</button>
   </div>
-  <div class="section-title">${t('cab_title')}</div>
-  <div id="purchases-list"><div class="empty">${t('loading')}</div></div>`;
+  <div class="section-title">${t('cab_lic')}</div>
+  <div id="lic-list"><div class="empty">${t('loading')}</div></div>`;
 
-  const { data } = await sb.from('purchases')
-    .select('*').eq('user_id', user.id)
+  const { data: lics } = await sb.from('licenses')
+    .select('*, license_slots(*)')
+    .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
-  if (!user || user.id !== snapshotUid) return;
-  const pl = document.getElementById('purchases-list');
-  if (!pl) return;
+  if (reqId !== cabinetRequestId) return; // фикс #6: ответ устарел
 
-  if (!data || !data.length){
-    pl.innerHTML = `<div class="empty"><p style="font-size:36px;margin-bottom:12px">📦</p><p>${t('empty')}</p></div>`;
+  const ll = document.getElementById('lic-list');
+  if (!lics || !lics.length) {
+    ll.innerHTML = `<div class="empty"><p style="font-size:36px;margin-bottom:12px">📦</p><p>${t('empty')}</p></div>`;
     return;
   }
 
-  pl.innerHTML = data.map(p => {
-    let actionHtml;
-    if (p.paid) {
-      if (!isValidRawUrl(p.raw_url)) {
-        actionHtml = `<span class="pending-badge" style="color:#f87171">${t('url_blocked')}</span>`;
-      } else {
-        const safeUrl = esc(p.raw_url);
-        actionHtml = `<button class="copy-btn" onclick="copyRaw('${safeUrl}')">${t('copy_btn')}</button>`;
-      }
-    } else {
-      const safeLabel = esc(p.label);
-      actionHtml = `<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <span class="pending-badge">${t('pending')}</span>
-        <button class="check-btn" id="chk-${safeLabel}" onclick="checkPayment('${safeLabel}',this)">${t('check_btn')}</button>
-      </div>`;
-    }
-    return `<div class="purchase-card">
-      <div>
-        <div class="p-name">${esc(p.script_title)}<span class="p-plan-badge">${esc(p.plan_name)}</span></div>
-        <div class="p-meta">${new Date(p.created_at).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US')} · ${p.price_rub} ₽</div>
+  ll.innerHTML = lics.map(lic => {
+    const slots = lic.license_slots || [];
+    const statusKey = !lic.active ? 'status_pending'
+      : lic.expires_at && new Date(lic.expires_at) < new Date() ? 'status_expired'
+      : 'status_active';
+    const statusCls = statusKey === 'status_active' ? 'active'
+      : statusKey === 'status_pending' ? 'pending' : 'expired';
+    const expiresStr = !lic.expires_at ? t('never')
+      : t('expires') + ' ' + new Date(lic.expires_at).toLocaleDateString(lang==='ru'?'ru-RU':'en-US');
+    const slotsHtml = slots.map(s => `
+      <div class="slot-row">
+        <span class="slot-nick">${escHtml(s.roblox_nick)}</span>
+        <button class="slot-del" onclick="deleteSlot('${s.id}','${lic.id}')" title="Удалить">×</button>
+      </div>`).join('');
+    const canAdd = lic.active && slots.length < lic.max_slots;
+    const pendingNote = !lic.active
+      ? `<div class="pending-note">${t('pending_note')}</div>` : '';
+    return `
+    <div class="lic-card" id="lic-${lic.id}">
+      <div class="lic-head">
+        <div class="lic-title">${escHtml(lic.script_title)}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="lic-plan">${escHtml(lic.plan_name||lic.plan_key)}</span>
+          <span class="lic-status ${statusCls}">${t(statusKey)}</span>
+        </div>
       </div>
-      ${actionHtml}
+      <div class="lic-expires">👤 ${slots.length}/${lic.max_slots} · ${expiresStr}</div>
+      ${pendingNote}
+      <div class="slots-label">${t('slots_label')}</div>
+      <div class="slots-list" id="slots-${lic.id}">${slotsHtml}</div>
+      ${canAdd ? `
+      <div class="slot-add">
+        <input class="slot-input" id="sinput-${lic.id}" placeholder="${t('nick_ph')}" maxlength="32"/>
+        <button class="slot-add-btn" onclick="addSlot('${lic.id}')">+ ${t('add_nick')}</button>
+      </div>` : `<div style="font-size:12px;color:var(--muted)">${slots.length >= lic.max_slots && lic.active ? t('slots_full') : ''}</div>`}
     </div>`;
   }).join('');
 }
 
-// ══ M-2 FIX: debounce на checkPayment — нельзя нажать повторно пока идёт запрос ══
-// Храним метки активных проверок — если уже проверяем, игнорируем повторный клик
-const _checkingLabels = new Set();
+// ─────────────────────────────────────────────────────────
+//  SLOTS
+// ─────────────────────────────────────────────────────────
+async function addSlot(licId) {
+  const input = document.getElementById('sinput-' + licId);
+  if (!input) return;
+  const nick = input.value.trim();
+  if (!nick) return;
 
-async function checkPayment(label, btn){
-  if (_checkingLabels.has(label)) return; // M-2: debounce
-  _checkingLabels.add(label);
-  btn.disabled = true; btn.textContent = '...';
+  const btn = input.nextElementSibling;
+  if (btn) { btn.disabled = true; }
 
-  try {
-    const { data } = await sb.from('purchases')
-      .select('paid').eq('label', label).eq('user_id', user?.id).single();
-    if (data?.paid) {
-      renderCabinet();
-    } else {
-      toast('⏳ Оплата пока не поступила', 'err');
-      btn.disabled = false; btn.textContent = t('check_btn');
-    }
-  } catch(e) {
-    toast('⚠ Ошибка проверки', 'err');
-    btn.disabled = false; btn.textContent = t('check_btn');
-  } finally {
-    _checkingLabels.delete(label);
+  const { error } = await sb.from('license_slots').insert({
+    license_id: licId,
+    roblox_nick: nick,
+  });
+
+  if (btn) btn.disabled = false;
+
+  if (error) {
+    if (error.code === '23505') toast(t('slot_exists'), 'err');
+    else toast(error.message, 'err');
+    return;
   }
+
+  input.value = '';
+  toast(t('slot_saved'), 'ok');
+  renderCabinet();
 }
 
-function copyRaw(url){
-  if (!isValidRawUrl(url)) { toast(t('url_blocked'), 'err'); return; }
-  navigator.clipboard.writeText(`loadstring(game:HttpGet("${url}"))()`)
-    .then(() => toast(t('copied'), 'ok'));
+async function deleteSlot(slotId, licId) {
+  await sb.from('license_slots').delete().eq('id', slotId);
+  toast(t('slot_deleted'), 'ok');
+  renderCabinet();
 }
 
-function toast(msg, type = ''){
+// ─────────────────────────────────────────────────────────
+//  COPY RAW — фикс #3: валидация домена
+// ─────────────────────────────────────────────────────────
+function safeRawUrl(rawUrl) {
+  try {
+    const u = new URL(rawUrl);
+    if (!ALLOWED_RAW_HOSTS.includes(u.hostname)) return null;
+    return rawUrl;
+  } catch { return null; }
+}
+function copyRaw(rawUrl) {
+  const safe = safeRawUrl(rawUrl);
+  if (!safe) { toast(t('err_url'), 'err'); return; }
+  const cmd = `loadstring(game:HttpGet("${safe}"))()`;
+  navigator.clipboard.writeText(cmd).then(() => toast(t('copied'), 'ok'));
+}
+
+// ─────────────────────────────────────────────────────────
+//  UTILS
+// ─────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function toast(msg, type = '') {
   const el = document.getElementById('toast');
   el.textContent = msg;
-  el.className = 'toast show ' + (type || '');
-  clearTimeout(el._tid);
-  el._tid = setTimeout(() => el.classList.remove('show'), 3500);
+  el.className = 'toast show ' + type;
+  setTimeout(() => el.classList.remove('show'), 3500);
 }
 
-// ══ INIT ══
+// ─────────────────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────────────────
 setLang(lang);
 updateNav();
 renderGrid();
