@@ -210,6 +210,55 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 .toast.show{transform:translateY(0);opacity:1}
 .toast.ok{border-color:var(--green);color:var(--green)}
 .toast.err{border-color:#f87171;color:#f87171}
+/* ADMIN */
+.admin-wrap{padding:28px;max-width:900px;margin:0 auto}
+.admin-header{background:linear-gradient(135deg,#1a0a30,var(--s2));border:1px solid var(--pink);
+  border-radius:16px;padding:16px 22px;margin-bottom:20px;display:flex;align-items:center;gap:12px}
+.admin-title{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--pink);font-weight:600}
+.admin-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.atab{font-size:13px;font-weight:600;padding:8px 18px;border-radius:8px;cursor:pointer;
+  border:1px solid var(--border2);background:var(--s1);color:var(--dim);transition:all .15s}
+.atab.on{background:rgba(236,72,153,.15);border-color:var(--pink);color:var(--pink)}
+.admin-section{display:none}.admin-section.on{display:block}
+.pending-card{background:var(--s1);border:1px solid var(--border);border-radius:12px;
+  padding:16px 20px;margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pc-info{flex:1;min-width:0}
+.pc-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px}
+.pc-meta{font-size:12px;color:var(--muted)}
+.pc-label{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--acc3);
+  background:var(--s2);border:1px solid var(--border2);border-radius:6px;
+  padding:3px 8px;margin-top:6px;display:inline-block}
+.pc-actions{display:flex;gap:8px;flex-shrink:0}
+.abtn-ok{font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;
+  background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:var(--green);transition:all .15s}
+.abtn-ok:hover{background:var(--green);color:#000}
+.abtn-ok:disabled{opacity:.4;cursor:not-allowed}
+.abtn-del{font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;
+  background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:#f87171;transition:all .15s}
+.abtn-del:hover{background:#f87171;color:#000}
+.ban-form{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px}
+.ban-form label{font-size:12px;font-weight:600;color:var(--dim);display:block;margin-bottom:6px}
+.ban-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.ban-input{flex:1;min-width:120px;padding:9px 12px;background:var(--s2);border:1px solid var(--border2);
+  border-radius:8px;color:var(--text);font-size:13px;font-family:'JetBrains Mono',monospace;outline:none;transition:border-color .15s}
+.ban-input:focus{border-color:var(--pink)}
+.abtn-ban{font-size:12px;font-weight:600;padding:9px 18px;border-radius:8px;cursor:pointer;
+  background:rgba(236,72,153,.15);border:1px solid var(--pink);color:var(--pink);transition:all .15s;white-space:nowrap}
+.abtn-ban:hover{background:var(--pink);color:#fff}
+.ban-list-item{display:flex;align-items:center;gap:8px;background:var(--s2);
+  border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:6px;flex-wrap:wrap}
+.ban-nick{font-family:'JetBrains Mono',monospace;font-size:13px;color:#f87171;flex:1}
+.ban-reason{font-size:11px;color:var(--muted)}
+.checks-table{width:100%;border-collapse:collapse;font-size:12px}
+.checks-table th{text-align:left;padding:8px 12px;color:var(--dim);border-bottom:1px solid var(--border);
+  font-weight:600;font-size:11px;letter-spacing:.5px}
+.checks-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text)}
+.checks-table tr:last-child td{border:none}
+.check-ok{color:var(--green)}.check-fail{color:#f87171}
+.admin-empty{text-align:center;padding:30px;color:var(--muted);font-size:13px}
+.refresh-btn{font-size:12px;padding:6px 14px;background:none;border:1px solid var(--border2);
+  color:var(--dim);border-radius:8px;cursor:pointer;transition:all .15s;margin-bottom:16px}
+.refresh-btn:hover{border-color:var(--acc);color:var(--acc)}
 </style>
 </head>
 <body>
@@ -233,6 +282,7 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
     </div>
     <button class="nav-btn nav-ghost" onclick="goto('shop')" id="n-shop">Магазин</button>
     <button class="nav-btn nav-ghost" id="cab-btn" onclick="cabClick()">Кабинет</button>
+    <button class="nav-btn nav-ghost" id="admin-btn" onclick="goto('admin')" style="display:none;border-color:var(--pink);color:var(--pink)">⚡ Admin</button>
     <button class="nav-btn nav-solid" id="auth-btn" onclick="goto('auth')" style="display:none">Войти</button>
   </nav>
 </header>
@@ -259,6 +309,45 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 
 <div class="page" id="page-cabinet">
   <div class="cab-wrap" id="cab-content"></div>
+</div>
+
+<div class="page" id="page-admin">
+  <div class="admin-wrap">
+    <div class="admin-header">
+      <span style="width:8px;height:8px;border-radius:50%;background:var(--pink);box-shadow:0 0 8px var(--pink);flex-shrink:0;display:inline-block"></span>
+      <span class="admin-title">ADMIN PANEL — GGshop</span>
+    </div>
+    <div class="admin-tabs">
+      <button class="atab on" onclick="adminTab('pending',this)">⏳ Ожидают активации</button>
+      <button class="atab" onclick="adminTab('checks',this)">📋 Проверки ключей</button>
+      <button class="atab" onclick="adminTab('bans',this)">🚫 Баны</button>
+      <button class="atab" onclick="adminTab('all',this)">📦 Все лицензии</button>
+    </div>
+    <div class="admin-section on" id="asec-pending">
+      <button class="refresh-btn" onclick="loadPending()">↻ Обновить</button>
+      <div id="pending-list"><div class="admin-empty">Загрузка...</div></div>
+    </div>
+    <div class="admin-section" id="asec-checks">
+      <button class="refresh-btn" onclick="loadChecks()">↻ Обновить</button>
+      <div id="checks-list"><div class="admin-empty">Загрузка...</div></div>
+    </div>
+    <div class="admin-section" id="asec-bans">
+      <div class="ban-form">
+        <label>Забанить по нику</label>
+        <div class="ban-row">
+          <input class="ban-input" id="ban-nick-input" placeholder="RobloxUsername" maxlength="32"/>
+          <input class="ban-input" id="ban-reason-input" placeholder="Причина" maxlength="64" style="max-width:160px"/>
+          <button class="abtn-ban" onclick="doBan()">Забанить</button>
+        </div>
+      </div>
+      <button class="refresh-btn" onclick="loadBans()">↻ Обновить</button>
+      <div id="bans-list"><div class="admin-empty">Загрузка...</div></div>
+    </div>
+    <div class="admin-section" id="asec-all">
+      <button class="refresh-btn" onclick="loadAllLics()">↻ Обновить</button>
+      <div id="all-lics-list"><div class="admin-empty">Загрузка...</div></div>
+    </div>
+  </div>
 </div>
 
 <div class="page" id="page-auth">
@@ -316,25 +405,16 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 </div>
 
 <script>
-// ─────────────────────────────────────────────────────────
-//  CONFIG
-// ─────────────────────────────────────────────────────────
 const SB_URL   = 'https://guzxxodewipzihypohoc.supabase.co';
 const SB_KEY   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1enh4b2Rld2lwemloeXBvaG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDk5NTIsImV4cCI6MjA5MjE4NTk1Mn0.xzyW9NHTa35OBxBdJy8I5JOpmOteGa0Tvg5vPsWOT-E';
 const WALLET   = '4100119480343964';
 const SITE     = 'https://is682573-code.github.io/ggshop.github.io';
 const USD_RATE = 90;
+const ADMIN_ID = '6e30144f-0ac1-40b2-8258-3559e900639d';
 
-const ALLOWED_RAW_HOSTS = [
-  'raw.githubusercontent.com',
-  'gist.githubusercontent.com',
-];
-
+const ALLOWED_RAW_HOSTS = ['raw.githubusercontent.com','gist.githubusercontent.com'];
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
-// ─────────────────────────────────────────────────────────
-//  TRANSLATIONS
-// ─────────────────────────────────────────────────────────
 const T = {
   ru:{
     shop:'Магазин', cab:'Кабинет', login:'Войти',
@@ -421,7 +501,6 @@ let lang = localStorage.getItem('gg_lang') || 'ru';
 const t = k => T[lang][k] || k;
 const rubToUsd = r => '$' + (r / USD_RATE).toFixed(2);
 
-// Читаемые названия планов (БАГ #6 ИСПРАВЛЕН)
 const PLAN_NAMES = {
   ru: { '7d': '7 дней', '30d': '30 дней', 'forever': 'Навсегда' },
   en: { '7d': '7 days', '30d': '30 days', 'forever': 'Forever' },
@@ -454,94 +533,59 @@ function applyT() {
   const ec = document.getElementById('ex-code');  if(ec) ec.placeholder = t('ph_code');
 }
 
-// ─────────────────────────────────────────────────────────
-//  STATE
-// ─────────────────────────────────────────────────────────
 let user = null, curScript = null, curPlanIdx = 0, currentCat = 'all';
 let cabinetRequestId = 0;
 
-// ─────────────────────────────────────────────────────────
-//  БАГ #4 ИСПРАВЛЕН: восстановление реальной Supabase-сессии
-//  Теперь сохраняем и восстанавливаем access/refresh токены,
-//  а не просто { id, nick } — иначе RLS не работает после перезагрузки
-// ─────────────────────────────────────────────────────────
 async function restoreSession() {
-  // Пробуем восстановить сессию через Supabase (из его внутреннего storage)
   const { data: { session } } = await sb.auth.getSession();
   if (session) {
-    // Сессия жива — читаем профиль
-    const { data: profile } = await sb
-      .from('profiles')
-      .select('nickname')
-      .eq('id', session.user.id)
-      .single();
-    if (profile) {
-      user = { id: session.user.id, nick: profile.nickname };
-    }
+    const { data: profile } = await sb.from('profiles').select('nickname').eq('id', session.user.id).single();
+    if (profile) user = { id: session.user.id, nick: profile.nickname };
     return;
   }
-
-  // Supabase сессии нет — пробуем восстановить из нашего localStorage
   const saved = localStorage.getItem('gg_session');
   if (!saved) return;
   let sessionData;
   try { sessionData = JSON.parse(saved); } catch(e) { return; }
-
   if (sessionData?.access_token && sessionData?.refresh_token) {
     const { data, error } = await sb.auth.setSession({
-      access_token:  sessionData.access_token,
+      access_token: sessionData.access_token,
       refresh_token: sessionData.refresh_token,
     });
     if (!error && data.session) {
-      const { data: profile } = await sb
-        .from('profiles')
-        .select('nickname')
-        .eq('id', data.session.user.id)
-        .single();
-      if (profile) {
-        user = { id: data.session.user.id, nick: profile.nickname };
-      }
+      const { data: profile } = await sb.from('profiles').select('nickname').eq('id', data.session.user.id).single();
+      if (profile) user = { id: data.session.user.id, nick: profile.nickname };
     } else {
-      // токен протух — чистим
       localStorage.removeItem('gg_session');
     }
   }
 }
 
-// Сохраняем сессию при каждом изменении (auto-refresh Supabase)
 sb.auth.onAuthStateChange((event, session) => {
   if (session) {
     localStorage.setItem('gg_session', JSON.stringify({
-      access_token:  session.access_token,
+      access_token: session.access_token,
       refresh_token: session.refresh_token,
     }));
   }
 });
 
-// ─────────────────────────────────────────────────────────
-//  AUTH
-// ─────────────────────────────────────────────────────────
 async function doNewUser() {
   const nick = document.getElementById('new-nick').value.trim();
   const err  = document.getElementById('new-err');
   const btn  = document.getElementById('new-btn');
   if (!nick) { err.textContent = t('err_fill'); return; }
   btn.disabled = true; btn.textContent = '...'; err.textContent = '';
-
   const { data, error } = await sb.auth.signInAnonymously();
   if (error) { err.textContent = error.message; btn.disabled=false; btn.textContent=t('btn_new'); return; }
-
   const uid = data.user.id;
   await sb.from('profiles').upsert({ id: uid, nickname: nick });
-
-  // Сохраняем сессию
   if (data.session) {
     localStorage.setItem('gg_session', JSON.stringify({
-      access_token:  data.session.access_token,
+      access_token: data.session.access_token,
       refresh_token: data.session.refresh_token,
     }));
   }
-
   user = { id: uid, nick };
   btn.disabled = false; btn.textContent = t('btn_new');
   curScript = null;
@@ -553,31 +597,16 @@ async function doExistingUser() {
   const err  = document.getElementById('ex-err');
   const btn  = document.getElementById('ex-btn');
   if (!code) { err.textContent = t('err_code'); return; }
-
   const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!uuidRe.test(code)) { err.textContent = t('err_not_found'); return; }
-
   btn.disabled = true; btn.textContent = '...'; err.textContent = '';
-
-  // БАГ #4 ИСПРАВЛЕН + БАГ безопасности profiles:
-  // Используем security definer функцию get_nickname_by_id()
-  // которая обходит RLS только для этой конкретной проверки
   const { data, error } = await sb.rpc('get_nickname_by_id', { p_id: code });
-
   if (error || !data) {
     err.textContent = t('err_not_found');
     btn.disabled = false; btn.textContent = t('btn_ex'); return;
   }
-
-  // Нашли профиль — но у нас нет токена для этого пользователя.
-  // Anon-сессии Supabase нельзя "войти по UUID" напрямую.
-  // Поэтому: сохраняем как "гостевой режим" с ограничением —
-  // запросы к лицензиям будут работать только если токен ещё жив.
-  // Правильное решение: использовать Email magic link или custom tokens.
-  // Пока — показываем предупреждение если сессия не восстановилась.
   user = { id: code, nick: data };
   localStorage.setItem('gg_session_uid_hint', code);
-
   btn.disabled = false; btn.textContent = t('btn_ex');
   updateNav();
   goto('shop');
@@ -600,23 +629,17 @@ function showCodeScreen(uid, nick) {
   document.getElementById('m-desc').innerHTML = `<span style="color:var(--text)">${t('warn_b')}</span>`;
   document.getElementById('m-feats').innerHTML = '';
   document.getElementById('pl-lbl').textContent = '';
-
-  // БАГ #3 ИСПРАВЛЕН: не вставляем uid в onclick-строку
-  // Используем data-атрибут
   const codeBox = document.createElement('div');
   codeBox.className = 'code-box';
   codeBox.style.width = '100%';
   codeBox.textContent = uid;
   codeBox.dataset.uid = uid;
   codeBox.addEventListener('click', () => copyCode(uid));
-
   document.getElementById('m-plans').innerHTML = '';
   document.getElementById('m-plans').appendChild(codeBox);
-
   document.getElementById('m-rub').textContent = '';
   document.getElementById('m-usd').textContent = '';
   document.getElementById('m-slots').textContent = '';
-
   const btn = document.getElementById('m-buy');
   btn.textContent = t('save_code');
   btn.onclick = () => copyCode(uid);
@@ -635,22 +658,27 @@ function switchTab(tab) {
   document.getElementById('pane-ex').style.display  = tab==='ex'  ? 'block' : 'none';
 }
 
+function isAdmin() { return user && user.id === ADMIN_ID; }
+
 function updateNav() {
   const cb = document.getElementById('cab-btn');
   const ab = document.getElementById('auth-btn');
+  const adm = document.getElementById('admin-btn');
   if (user) { cb.textContent = user.nick; ab.style.display = 'none'; }
   else       { cb.textContent = t('cab');  ab.style.display = ''; }
+  if (adm) adm.style.display = isAdmin() ? '' : 'none';
 }
+
 function cabClick() { if (user) goto('cabinet'); else goto('auth'); }
+
 function goto(p) {
+  if (p === 'admin' && !isAdmin()) { goto('shop'); return; }
   document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
   document.getElementById('page-' + p).classList.add('active');
   if (p === 'cabinet') renderCabinet();
+  if (p === 'admin')   initAdmin();
 }
 
-// ─────────────────────────────────────────────────────────
-//  SCRIPTS DATA
-// ─────────────────────────────────────────────────────────
 const SCRIPTS = [
   {
     id:1, cat:'auto', emoji:'🚩', img:'',
@@ -662,9 +690,7 @@ const SCRIPTS = [
            en:['Unlimited waypoints','Configurable wait','Hang detection','Works after respawn']},
     exec:'Xeno / Solara',
     raw:'https://raw.githubusercontent.com/xqvijbgowwwqagzhrltxovf/FlagRunnerGGshop/refs/heads/main/FlagRunner',
-    plans:[
-      {key:'forever', name:{ru:'Навсегда',en:'Forever'}, price:50, slots:7, badge:''},
-    ]
+    plans:[{key:'forever', name:{ru:'Навсегда',en:'Forever'}, price:50, slots:7, badge:''}]
   },
   {
     id:2, cat:'visual', emoji:'🌌', img:'',
@@ -733,9 +759,6 @@ const SCRIPTS = [
   },
 ];
 
-// ─────────────────────────────────────────────────────────
-//  GRID
-// ─────────────────────────────────────────────────────────
 function filterGrid(cat, btn) {
   document.querySelectorAll('.fb').forEach(b => b.classList.remove('on'));
   if (btn && btn.classList) btn.classList.add('on');
@@ -748,99 +771,45 @@ function renderGrid(cat = 'all') {
     const minP = Math.min(...prices), maxP = Math.max(...prices);
     const priceStr = minP === maxP ? `${minP} ₽` : `${t('from')} ${minP} ₽`;
     const usdStr   = minP === maxP ? rubToUsd(minP) : `${rubToUsd(minP)} – ${rubToUsd(maxP)}`;
-
-    const card = document.createElement('div');
-    card.className = 'card';
-
-    const imgDiv = document.createElement('div');
-    imgDiv.className = 'card-img';
-    if (s.img) {
-      const img = document.createElement('img');
-      img.src = s.img; img.alt = s.title; img.loading = 'lazy';
-      imgDiv.appendChild(img);
-    } else {
-      imgDiv.textContent = s.emoji;
-    }
-
-    const body = document.createElement('div');
-    body.className = 'card-body';
-
-    const tag = document.createElement('span');
-    tag.className = 'ctag ' + s.cat;
-    tag.textContent = t('tag_'+s.cat);
-
-    const title = document.createElement('div');
-    title.className = 'ctitle';
-    title.textContent = s.title;
-
-    const desc = document.createElement('div');
-    desc.className = 'cdesc';
-    desc.textContent = s.short[lang];
-
-    const foot = document.createElement('div');
-    foot.className = 'cfoot';
-
+    const card = document.createElement('div'); card.className = 'card';
+    const imgDiv = document.createElement('div'); imgDiv.className = 'card-img';
+    if (s.img) { const img = document.createElement('img'); img.src = s.img; img.alt = s.title; img.loading = 'lazy'; imgDiv.appendChild(img); }
+    else { imgDiv.textContent = s.emoji; }
+    const body = document.createElement('div'); body.className = 'card-body';
+    const tag = document.createElement('span'); tag.className = 'ctag ' + s.cat; tag.textContent = t('tag_'+s.cat);
+    const title = document.createElement('div'); title.className = 'ctitle'; title.textContent = s.title;
+    const desc = document.createElement('div'); desc.className = 'cdesc'; desc.textContent = s.short[lang];
+    const foot = document.createElement('div'); foot.className = 'cfoot';
     const priceWrap = document.createElement('div');
-    const priceEl = document.createElement('div');
-    priceEl.className = 'cprice';
-    priceEl.textContent = priceStr;
-    const usdEl = document.createElement('div');
-    usdEl.className = 'cprice-usd';
-    usdEl.textContent = usdStr;
-    priceWrap.appendChild(priceEl);
-    priceWrap.appendChild(usdEl);
-
-    // БАГ #3 ИСПРАВЛЕН: кнопка создаётся через DOM, без innerHTML onclick
-    const btn = document.createElement('button');
-    btn.className = 'cbtn';
-    btn.textContent = t('details');
+    const priceEl = document.createElement('div'); priceEl.className = 'cprice'; priceEl.textContent = priceStr;
+    const usdEl = document.createElement('div'); usdEl.className = 'cprice-usd'; usdEl.textContent = usdStr;
+    priceWrap.appendChild(priceEl); priceWrap.appendChild(usdEl);
+    const btn = document.createElement('button'); btn.className = 'cbtn'; btn.textContent = t('details');
     btn.addEventListener('click', () => openModal(s.id));
-
-    foot.appendChild(priceWrap);
-    foot.appendChild(btn);
-    body.appendChild(tag);
-    body.appendChild(title);
-    body.appendChild(desc);
-    body.appendChild(foot);
-    card.appendChild(imgDiv);
-    card.appendChild(body);
+    foot.appendChild(priceWrap); foot.appendChild(btn);
+    body.appendChild(tag); body.appendChild(title); body.appendChild(desc); body.appendChild(foot);
+    card.appendChild(imgDiv); card.appendChild(body);
     g.appendChild(card);
   });
 }
 
-// ─────────────────────────────────────────────────────────
-//  MODAL
-// ─────────────────────────────────────────────────────────
 function openModal(id) {
   curScript = SCRIPTS.find(s => s.id === id);
   if (!curScript) return;
   const defIdx = curScript.plans.findIndex(p => p.badge === 'popular');
   curPlanIdx = defIdx >= 0 ? defIdx : 0;
-
   document.getElementById('m-title').textContent = curScript.title;
   document.getElementById('m-exec').textContent  = curScript.exec;
   document.getElementById('m-desc').textContent  = curScript.desc[lang];
-
   const mi = document.getElementById('m-img');
-  if (curScript.img) {
-    const img = document.createElement('img');
-    img.src = curScript.img; img.alt = curScript.title;
-    mi.innerHTML = ''; mi.appendChild(img);
-  } else {
-    mi.textContent = curScript.emoji;
-  }
-
+  if (curScript.img) { const img = document.createElement('img'); img.src = curScript.img; img.alt = curScript.title; mi.innerHTML = ''; mi.appendChild(img); }
+  else { mi.textContent = curScript.emoji; }
   const fl = document.getElementById('m-feats'); fl.innerHTML = '';
-  curScript.feats[lang].forEach(f => {
-    const li = document.createElement('li'); li.textContent = f; fl.appendChild(li);
-  });
-
+  curScript.feats[lang].forEach(f => { const li = document.createElement('li'); li.textContent = f; fl.appendChild(li); });
   document.getElementById('pl-lbl').textContent = t('pl_lbl');
-
   const buyBtn = document.getElementById('m-buy');
   buyBtn.textContent = t('buy');
   buyBtn.onclick = doBuy;
-
   renderPlans();
   document.getElementById('overlay').classList.add('open');
 }
@@ -851,91 +820,42 @@ function renderPlans() {
     const sel = i === curPlanIdx;
     const planDiv = document.createElement('div');
     planDiv.className = 'plan' + (sel ? ' selected' : '');
-
-    if (p.badge === 'popular') {
-      const badge = document.createElement('div');
-      badge.className = 'plan-badge';
-      badge.textContent = t('popular');
-      planDiv.appendChild(badge);
-    }
-    if (p.badge === 'best') {
-      const badge = document.createElement('div');
-      badge.className = 'plan-badge';
-      badge.textContent = t('best');
-      planDiv.appendChild(badge);
-    }
-
+    if (p.badge === 'popular') { const badge = document.createElement('div'); badge.className = 'plan-badge'; badge.textContent = t('popular'); planDiv.appendChild(badge); }
+    if (p.badge === 'best')    { const badge = document.createElement('div'); badge.className = 'plan-badge'; badge.textContent = t('best');    planDiv.appendChild(badge); }
     const nameEl = document.createElement('div'); nameEl.className = 'plan-name'; nameEl.textContent = p.name[lang];
-    const rubEl  = document.createElement('div'); rubEl.className = 'plan-rub';
-    rubEl.textContent = p.price;
-    const rubSpan = document.createElement('span');
-    rubSpan.style.cssText = 'font-size:12px;color:var(--muted)';
-    rubSpan.textContent = ' ₽';
-    rubEl.appendChild(rubSpan);
+    const rubEl  = document.createElement('div'); rubEl.className = 'plan-rub'; rubEl.textContent = p.price;
+    const rubSpan = document.createElement('span'); rubSpan.style.cssText = 'font-size:12px;color:var(--muted)'; rubSpan.textContent = ' ₽'; rubEl.appendChild(rubSpan);
     const usdEl  = document.createElement('div'); usdEl.className = 'plan-usd'; usdEl.textContent = rubToUsd(p.price);
-    const slotsLabel = lang === 'ru'
-      ? `${p.slots} ${p.slots===1?'ник':p.slots<5?'ника':'ников'}`
-      : `${p.slots} ${p.slots===1?'slot':'slots'}`;
+    const slotsLabel = lang === 'ru' ? `${p.slots} ${p.slots===1?'ник':p.slots<5?'ника':'ников'}` : `${p.slots} ${p.slots===1?'slot':'slots'}`;
     const slotsEl = document.createElement('div'); slotsEl.className = 'plan-slots'; slotsEl.textContent = '👤 ' + slotsLabel;
-
-    planDiv.appendChild(nameEl);
-    planDiv.appendChild(rubEl);
-    planDiv.appendChild(usdEl);
-    planDiv.appendChild(slotsEl);
-
-    if (p.sale) {
-      const saleEl = document.createElement('div'); saleEl.className = 'plan-sale'; saleEl.textContent = p.sale[lang];
-      planDiv.appendChild(saleEl);
-    }
-
+    planDiv.appendChild(nameEl); planDiv.appendChild(rubEl); planDiv.appendChild(usdEl); planDiv.appendChild(slotsEl);
+    if (p.sale) { const saleEl = document.createElement('div'); saleEl.className = 'plan-sale'; saleEl.textContent = p.sale[lang]; planDiv.appendChild(saleEl); }
     planDiv.addEventListener('click', () => { curPlanIdx = i; renderPlans(); });
     c.appendChild(planDiv);
   });
-
   const sel = curScript.plans[curPlanIdx];
   document.getElementById('m-rub').textContent = sel.price + ' ₽';
   document.getElementById('m-usd').textContent = '≈ ' + rubToUsd(sel.price);
-  const slotsLabel = lang === 'ru'
-    ? `👤 ${sel.slots} ${sel.slots===1?'ник':sel.slots<5?'ника':'ников'}`
-    : `👤 ${sel.slots} ${sel.slots===1?'slot':'slots'}`;
+  const slotsLabel = lang === 'ru' ? `👤 ${sel.slots} ${sel.slots===1?'ник':sel.slots<5?'ника':'ников'}` : `👤 ${sel.slots} ${sel.slots===1?'slot':'slots'}`;
   document.getElementById('m-slots').textContent = slotsLabel;
 }
 
 function closeModal() { document.getElementById('overlay').classList.remove('open'); }
 function overlayBg(e) { if (e.target.id === 'overlay') closeModal(); }
 
-// ─────────────────────────────────────────────────────────
-//  BUY
-//  БАГ #1 ИСПРАВЛЕН: лицензия НЕ создаётся здесь.
-//    Данные сохраняются в sessionStorage, создание происходит
-//    в success.html после подтверждённого редиректа от ЮМани.
-//  БАГ #7 ИСПРАВЛЕН: кнопка блокируется на 3 сек после клика.
-// ─────────────────────────────────────────────────────────
 function doBuy() {
   if (!curScript) return;
   if (!user) { closeModal(); goto('auth'); return; }
-
-  // БАГ #7: блокируем кнопку от двойного клика
   const buyBtn = document.getElementById('m-buy');
   buyBtn.disabled = true;
   setTimeout(() => { buyBtn.disabled = false; }, 3000);
-
   const plan  = curScript.plans[curPlanIdx];
   const label = 'gg_' + curScript.id + '_' + Date.now();
-
-  // БАГ #1: сохраняем данные покупки в sessionStorage ДО редиректа
-  // success.html прочитает их и создаст лицензию
   sessionStorage.setItem('gg_pending_purchase', JSON.stringify({
-    label,
-    scriptId:    curScript.id,
-    scriptTitle: curScript.title,
-    planKey:     plan.key,
-    planName:    plan.name[lang],
-    maxSlots:    plan.slots,
-    priceRub:    plan.price,
-    userId:      user.id,
+    label, scriptId: curScript.id, scriptTitle: curScript.title,
+    planKey: plan.key, planName: plan.name[lang],
+    maxSlots: plan.slots, priceRub: plan.price, userId: user.id,
   }));
-
   const payUrl = 'https://yoomoney.ru/quickpay/confirm'
     + '?receiver='       + WALLET
     + '&quickpay-form=button'
@@ -943,10 +863,8 @@ function doBuy() {
     + '&sum='            + plan.price
     + '&label='          + label
     + '&successURL='     + encodeURIComponent(SITE + '/success.html?label=' + label);
-
   const win = window.open(payUrl, '_blank');
   closeModal();
-
   if (win) {
     toast(t('pay'), 'ok');
   } else {
@@ -958,61 +876,33 @@ function doBuy() {
   }
 }
 
-// ─────────────────────────────────────────────────────────
-//  CABINET
-// ─────────────────────────────────────────────────────────
 async function renderCabinet() {
   const reqId = ++cabinetRequestId;
   const c = document.getElementById('cab-content');
-
   if (!user) {
     c.innerHTML = `<div class="empty" style="padding:60px"><p style="font-size:36px;margin-bottom:12px">🔒</p><p>${t('locked')}</p></div>`;
     return;
   }
-
-  // Шапка кабинета
-  const header = document.createElement('div');
-  header.className = 'cab-header';
-  const avatar = document.createElement('div');
-  avatar.className = 'avatar';
-  avatar.textContent = user.nick[0].toUpperCase();
+  const header = document.createElement('div'); header.className = 'cab-header';
+  const avatar = document.createElement('div'); avatar.className = 'avatar'; avatar.textContent = user.nick[0].toUpperCase();
   const info = document.createElement('div');
   const nameEl = document.createElement('div'); nameEl.className = 'cab-name'; nameEl.textContent = user.nick;
   const metaEl = document.createElement('div'); metaEl.className = 'cab-meta'; metaEl.textContent = 'ID: ' + user.id.slice(0,8) + '…';
   info.appendChild(nameEl); info.appendChild(metaEl);
-
-  // БАГ #3 ИСПРАВЛЕН: кнопка выхода через addEventListener
-  const logoutBtn = document.createElement('button');
-  logoutBtn.className = 'cab-logout';
-  logoutBtn.textContent = t('logout');
+  const logoutBtn = document.createElement('button'); logoutBtn.className = 'cab-logout'; logoutBtn.textContent = t('logout');
   logoutBtn.addEventListener('click', doLogout);
-
-  header.appendChild(avatar);
-  header.appendChild(info);
-  header.appendChild(logoutBtn);
-
-  const secTitle = document.createElement('div');
-  secTitle.className = 'section-title';
-  secTitle.textContent = t('cab_lic');
-
-  const licList = document.createElement('div');
-  licList.id = 'lic-list';
+  header.appendChild(avatar); header.appendChild(info); header.appendChild(logoutBtn);
+  const secTitle = document.createElement('div'); secTitle.className = 'section-title'; secTitle.textContent = t('cab_lic');
+  const licList = document.createElement('div'); licList.id = 'lic-list';
   licList.innerHTML = `<div class="empty">${t('loading')}</div>`;
-
   c.innerHTML = '';
-  c.appendChild(header);
-  c.appendChild(secTitle);
-  c.appendChild(licList);
-
+  c.appendChild(header); c.appendChild(secTitle); c.appendChild(licList);
   const { data: lics, error } = await sb.from('licenses')
     .select('*, license_slots(*)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
-
   if (reqId !== cabinetRequestId) return;
-
   if (error) {
-    // БАГ #5 ИСПРАВЛЕН: явная обработка ошибки авторизации
     if (error.code === 'PGRST301' || error.message?.includes('JWT')) {
       licList.innerHTML = `<div class="empty">${t('session_expired')}</div>`;
       toast(t('session_expired'), 'err');
@@ -1021,177 +911,107 @@ async function renderCabinet() {
     }
     return;
   }
-
   if (!lics || !lics.length) {
     licList.innerHTML = `<div class="empty"><p style="font-size:36px;margin-bottom:12px">📦</p><p>${t('empty')}</p></div>`;
     return;
   }
-
   licList.innerHTML = '';
   lics.forEach(lic => renderLicCard(lic, licList));
 }
 
-// БАГ #3 ИСПРАВЛЕН: карточка лицензии строится через DOM, не через innerHTML с onclick
 function renderLicCard(lic, container) {
   const slots = lic.license_slots || [];
   const statusKey = !lic.active ? 'status_pending'
     : lic.expires_at && new Date(lic.expires_at) < new Date() ? 'status_expired'
     : 'status_active';
-  const statusCls = statusKey === 'status_active' ? 'active'
-    : statusKey === 'status_pending' ? 'pending' : 'expired';
-  const expiresStr = !lic.expires_at ? t('never')
-    : t('expires') + ' ' + new Date(lic.expires_at).toLocaleDateString(lang==='ru'?'ru-RU':'en-US');
-
-  const card = document.createElement('div');
-  card.className = 'lic-card';
-  card.id = 'lic-' + lic.id;
-
-  // Шапка карточки
+  const statusCls = statusKey === 'status_active' ? 'active' : statusKey === 'status_pending' ? 'pending' : 'expired';
+  const expiresStr = !lic.expires_at ? t('never') : t('expires') + ' ' + new Date(lic.expires_at).toLocaleDateString(lang==='ru'?'ru-RU':'en-US');
+  const card = document.createElement('div'); card.className = 'lic-card'; card.id = 'lic-' + lic.id;
   const head = document.createElement('div'); head.className = 'lic-head';
   const titleEl = document.createElement('div'); titleEl.className = 'lic-title'; titleEl.textContent = lic.script_title;
   const badges = document.createElement('div'); badges.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap';
-
-  // БАГ #6 ИСПРАВЛЕН: plan_name из колонки или маппинг по plan_key
   const displayPlanName = lic.plan_name || planName(lic.plan_key);
   const planBadge = document.createElement('span'); planBadge.className = 'lic-plan'; planBadge.textContent = displayPlanName;
   const statusBadge = document.createElement('span'); statusBadge.className = 'lic-status ' + statusCls; statusBadge.textContent = t(statusKey);
   badges.appendChild(planBadge); badges.appendChild(statusBadge);
   head.appendChild(titleEl); head.appendChild(badges);
-
-  const expiresEl = document.createElement('div');
-  expiresEl.className = 'lic-expires';
+  const expiresEl = document.createElement('div'); expiresEl.className = 'lic-expires';
   expiresEl.textContent = `👤 ${slots.length}/${lic.max_slots} · ${expiresStr}`;
-
-  card.appendChild(head);
-  card.appendChild(expiresEl);
-
+  card.appendChild(head); card.appendChild(expiresEl);
   if (!lic.active) {
-    const note = document.createElement('div');
-    note.className = 'pending-note';
-    note.textContent = t('pending_note');
+    const note = document.createElement('div'); note.className = 'pending-note'; note.textContent = t('pending_note');
     card.appendChild(note);
   }
-
-  // Слоты
   const slotsLabel = document.createElement('div'); slotsLabel.className = 'slots-label'; slotsLabel.textContent = t('slots_label');
   card.appendChild(slotsLabel);
-
-  const slotsList = document.createElement('div');
-  slotsList.className = 'slots-list';
-  slotsList.id = 'slots-' + lic.id;
-
+  const slotsList = document.createElement('div'); slotsList.className = 'slots-list'; slotsList.id = 'slots-' + lic.id;
   slots.forEach(s => {
     const row = document.createElement('div'); row.className = 'slot-row';
     const nick = document.createElement('span'); nick.className = 'slot-nick'; nick.textContent = s.roblox_nick;
-    // БАГ #3 ИСПРАВЛЕН: delBtn через addEventListener + dataset
     const delBtn = document.createElement('button'); delBtn.className = 'slot-del'; delBtn.title = 'Удалить'; delBtn.textContent = '×';
-    delBtn.dataset.slotId = s.id;
-    delBtn.dataset.licId  = lic.id;
     delBtn.addEventListener('click', () => deleteSlot(s.id, lic.id));
     row.appendChild(nick); row.appendChild(delBtn);
     slotsList.appendChild(row);
   });
   card.appendChild(slotsList);
-
-  // Добавление слота
   const canAdd = lic.active && slots.length < lic.max_slots;
   if (canAdd) {
     const addRow = document.createElement('div'); addRow.className = 'slot-add';
-    const input = document.createElement('input');
-    input.className = 'slot-input';
-    input.placeholder = t('nick_ph');
-    input.maxLength = 32;
-    input.id = 'sinput-' + lic.id;
-
-    const addBtn = document.createElement('button');
-    addBtn.className = 'slot-add-btn';
-    addBtn.textContent = '+ ' + t('add_nick');
-    addBtn.dataset.licId = lic.id;
+    const input = document.createElement('input'); input.className = 'slot-input'; input.placeholder = t('nick_ph'); input.maxLength = 32; input.id = 'sinput-' + lic.id;
+    const addBtn = document.createElement('button'); addBtn.className = 'slot-add-btn'; addBtn.textContent = '+ ' + t('add_nick');
     addBtn.addEventListener('click', () => addSlot(lic.id));
-
     addRow.appendChild(input); addRow.appendChild(addBtn);
     card.appendChild(addRow);
   } else if (lic.active && slots.length >= lic.max_slots) {
-    const fullEl = document.createElement('div');
-    fullEl.style.cssText = 'font-size:12px;color:var(--muted)';
-    fullEl.textContent = t('slots_full');
+    const fullEl = document.createElement('div'); fullEl.style.cssText = 'font-size:12px;color:var(--muted)'; fullEl.textContent = t('slots_full');
     card.appendChild(fullEl);
   }
-
-  // Кнопка копирования скрипта
   const script = SCRIPTS.find(s => s.id === lic.script_id);
   if (script && lic.active) {
     const copyRow = document.createElement('div');
     copyRow.style.cssText = 'margin-top:14px;padding-top:14px;border-top:1px solid var(--border)';
-    const copyBtn = document.createElement('button');
-    copyBtn.className = 'slot-add-btn';
+    const copyBtn = document.createElement('button'); copyBtn.className = 'slot-add-btn';
     copyBtn.style.cssText = 'width:100%;padding:10px;font-size:13px';
     copyBtn.textContent = '📋 Скопировать скрипт';
     copyBtn.addEventListener('click', () => copyRaw(script.raw));
     copyRow.appendChild(copyBtn);
     card.appendChild(copyRow);
   }
-
   container.appendChild(card);
 }
 
-// ─────────────────────────────────────────────────────────
-//  SLOTS
-//  БАГ #5 ИСПРАВЛЕН: проверяем count чтобы убедиться что
-//  удаление прошло (а не молча провалилось из-за RLS)
-// ─────────────────────────────────────────────────────────
 async function addSlot(licId) {
   const input = document.getElementById('sinput-' + licId);
   if (!input) return;
   const nick = input.value.trim();
   if (!nick) return;
-
   const btn = input.nextElementSibling;
   if (btn) btn.disabled = true;
-
-  const { error } = await sb.from('license_slots').insert({
-    license_id: licId,
-    roblox_nick: nick,
-  });
-
+  const { error } = await sb.from('license_slots').insert({ license_id: licId, roblox_nick: nick });
   if (btn) btn.disabled = false;
-
   if (error) {
     if (error.code === '23505') toast(t('slot_exists'), 'err');
     else if (error.code === 'PGRST301' || error.message?.includes('JWT')) toast(t('slot_err_auth'), 'err');
     else toast(error.message, 'err');
     return;
   }
-
   input.value = '';
   toast(t('slot_saved'), 'ok');
   renderCabinet();
 }
 
 async function deleteSlot(slotId, licId) {
-  // БАГ #5 ИСПРАВЛЕН: count: 'exact' — проверяем что реально удалили
-  const { error, count } = await sb
-    .from('license_slots')
-    .delete({ count: 'exact' })
-    .eq('id', slotId);
-
+  const { error, count } = await sb.from('license_slots').delete({ count: 'exact' }).eq('id', slotId);
   if (error) {
     if (error.code === 'PGRST301' || error.message?.includes('JWT')) toast(t('slot_err_auth'), 'err');
     else toast(error.message, 'err');
     return;
   }
-  if (count === 0) {
-    toast(t('slot_err_auth'), 'err');
-    return;
-  }
-
+  if (count === 0) { toast(t('slot_err_auth'), 'err'); return; }
   toast(t('slot_deleted'), 'ok');
   renderCabinet();
 }
 
-// ─────────────────────────────────────────────────────────
-//  COPY RAW
-// ─────────────────────────────────────────────────────────
 function safeRawUrl(rawUrl) {
   try {
     const u = new URL(rawUrl);
@@ -1207,11 +1027,153 @@ function copyRaw(rawUrl) {
 }
 
 // ─────────────────────────────────────────────────────────
-//  UTILS
+//  ADMIN
 // ─────────────────────────────────────────────────────────
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function adminTab(name, btn) {
+  document.querySelectorAll('.atab').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('on'));
+  document.getElementById('asec-' + name).classList.add('on');
+  if (name === 'pending') loadPending();
+  if (name === 'checks')  loadChecks();
+  if (name === 'bans')    loadBans();
+  if (name === 'all')     loadAllLics();
 }
+
+function initAdmin() { loadPending(); }
+
+async function loadPending() {
+  const el = document.getElementById('pending-list');
+  el.innerHTML = '<div class="admin-empty">Загрузка...</div>';
+  const { data, error } = await sb.from('licenses')
+    .select('*, profiles(nickname)')
+    .eq('active', false)
+    .order('created_at', { ascending: false });
+  if (error) { el.innerHTML = `<div class="admin-empty">${error.message}</div>`; return; }
+  if (!data.length) { el.innerHTML = '<div class="admin-empty">Нет ожидающих лицензий 🎉</div>'; return; }
+  el.innerHTML = '';
+  data.forEach(lic => {
+    const card = document.createElement('div'); card.className = 'pending-card'; card.id = 'pc-' + lic.id;
+    const info = document.createElement('div'); info.className = 'pc-info';
+    const title = document.createElement('div'); title.className = 'pc-title';
+    title.textContent = lic.script_title + ' — ' + (lic.plan_name || lic.plan_key);
+    const meta = document.createElement('div'); meta.className = 'pc-meta';
+    meta.textContent = `👤 ${lic.profiles?.nickname || lic.user_id.slice(0,8)} · ${lic.price_rub} ₽ · ${new Date(lic.created_at).toLocaleString('ru-RU')}`;
+    const labelEl = document.createElement('div'); labelEl.className = 'pc-label'; labelEl.textContent = lic.label;
+    info.appendChild(title); info.appendChild(meta); info.appendChild(labelEl);
+    const actions = document.createElement('div'); actions.className = 'pc-actions';
+    const okBtn = document.createElement('button'); okBtn.className = 'abtn-ok'; okBtn.textContent = '✓ Активировать';
+    okBtn.addEventListener('click', () => activateLic(lic, okBtn));
+    const delBtn = document.createElement('button'); delBtn.className = 'abtn-del'; delBtn.textContent = '✕ Удалить';
+    delBtn.addEventListener('click', () => deleteLic(lic.id));
+    actions.appendChild(okBtn); actions.appendChild(delBtn);
+    card.appendChild(info); card.appendChild(actions);
+    el.appendChild(card);
+  });
+}
+
+async function activateLic(lic, btn) {
+  btn.disabled = true; btn.textContent = '...';
+  let expires_at = null;
+  if (lic.plan_key === '7d')  expires_at = new Date(Date.now() + 7  * 86400000).toISOString();
+  if (lic.plan_key === '30d') expires_at = new Date(Date.now() + 30 * 86400000).toISOString();
+  const { error } = await sb.from('licenses').update({ active: true, expires_at }).eq('id', lic.id);
+  if (error) { toast(error.message, 'err'); btn.disabled=false; btn.textContent='✓ Активировать'; return; }
+  toast('✅ Лицензия активирована', 'ok');
+  document.getElementById('pc-' + lic.id)?.remove();
+}
+
+async function deleteLic(id) {
+  if (!confirm('Удалить лицензию?')) return;
+  const { error } = await sb.from('licenses').delete().eq('id', id);
+  if (error) { toast(error.message, 'err'); return; }
+  toast('Удалено', 'ok');
+  document.getElementById('pc-' + id)?.remove();
+}
+
+async function loadChecks() {
+  const el = document.getElementById('checks-list');
+  el.innerHTML = '<div class="admin-empty">Загрузка...</div>';
+  const { data, error } = await sb.from('key_checks').select('*').order('checked_at', { ascending: false }).limit(50);
+  if (error) { el.innerHTML = `<div class="admin-empty">${error.message}</div>`; return; }
+  if (!data.length) { el.innerHTML = '<div class="admin-empty">Проверок пока нет</div>'; return; }
+  const table = document.createElement('table'); table.className = 'checks-table';
+  table.innerHTML = '<thead><tr><th>НИК</th><th>СКРИПТ</th><th>РЕЗУЛЬТАТ</th><th>ВРЕМЯ</th></tr></thead>';
+  const tbody = document.createElement('tbody');
+  data.forEach(c => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="font-family:'JetBrains Mono',monospace">${c.roblox_nick}</td><td>#${c.script_id}</td><td class="${c.allowed ? 'check-ok' : 'check-fail'}">${c.allowed ? '✓ OK' : '✕ ' + c.reason}</td><td style="color:var(--muted)">${new Date(c.checked_at).toLocaleString('ru-RU')}</td>`;
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  el.innerHTML = ''; el.appendChild(table);
+}
+
+async function loadBans() {
+  const el = document.getElementById('bans-list');
+  el.innerHTML = '<div class="admin-empty">Загрузка...</div>';
+  const { data, error } = await sb.from('bans').select('*').order('banned_at', { ascending: false });
+  if (error) { el.innerHTML = `<div class="admin-empty">${error.message}</div>`; return; }
+  if (!data.length) { el.innerHTML = '<div class="admin-empty">Банов нет</div>'; return; }
+  el.innerHTML = '';
+  data.forEach(b => {
+    const row = document.createElement('div'); row.className = 'ban-list-item';
+    const nick = document.createElement('span'); nick.className = 'ban-nick'; nick.textContent = b.roblox_nick || b.ip_hash || '?';
+    const reason = document.createElement('span'); reason.className = 'ban-reason'; reason.textContent = b.reason || '';
+    const unbanBtn = document.createElement('button'); unbanBtn.className = 'abtn-del'; unbanBtn.style.padding = '4px 10px'; unbanBtn.textContent = 'Разбанить';
+    unbanBtn.addEventListener('click', () => doUnban(b.id, row));
+    row.appendChild(nick); row.appendChild(reason); row.appendChild(unbanBtn);
+    el.appendChild(row);
+  });
+}
+
+async function doBan() {
+  const nick   = document.getElementById('ban-nick-input').value.trim();
+  const reason = document.getElementById('ban-reason-input').value.trim();
+  if (!nick) return;
+  const { error } = await sb.from('bans').insert({ roblox_nick: nick, reason: reason || null });
+  if (error) { toast(error.message, 'err'); return; }
+  document.getElementById('ban-nick-input').value = '';
+  document.getElementById('ban-reason-input').value = '';
+  toast('🚫 ' + nick + ' забанен', 'ok');
+  loadBans();
+}
+
+async function doUnban(id, row) {
+  const { error } = await sb.from('bans').delete().eq('id', id);
+  if (error) { toast(error.message, 'err'); return; }
+  row.remove(); toast('Разбанено', 'ok');
+}
+
+async function loadAllLics() {
+  const el = document.getElementById('all-lics-list');
+  el.innerHTML = '<div class="admin-empty">Загрузка...</div>';
+  const { data, error } = await sb.from('licenses')
+    .select('*, profiles(nickname), license_slots(*)')
+    .order('created_at', { ascending: false });
+  if (error) { el.innerHTML = `<div class="admin-empty">${error.message}</div>`; return; }
+  if (!data.length) { el.innerHTML = '<div class="admin-empty">Лицензий нет</div>'; return; }
+  el.innerHTML = '';
+  data.forEach(lic => {
+    const card = document.createElement('div'); card.className = 'pending-card'; card.id = 'alc-' + lic.id;
+    const statusCls = !lic.active ? 'pending' : lic.expires_at && new Date(lic.expires_at) < new Date() ? 'expired' : 'active';
+    const info = document.createElement('div'); info.className = 'pc-info';
+    const title = document.createElement('div'); title.className = 'pc-title';
+    title.textContent = lic.script_title + ' — ' + (lic.plan_name || lic.plan_key);
+    const meta = document.createElement('div'); meta.className = 'pc-meta';
+    const slots = (lic.license_slots || []).map(s => s.roblox_nick).join(', ') || '—';
+    meta.textContent = `👤 ${lic.profiles?.nickname || lic.user_id.slice(0,8)} · ${lic.price_rub} ₽ · слоты: ${slots}`;
+    const labelEl = document.createElement('div'); labelEl.className = 'pc-label'; labelEl.textContent = lic.label;
+    info.appendChild(title); info.appendChild(meta); info.appendChild(labelEl);
+    const statusBadge = document.createElement('span'); statusBadge.className = 'lic-status ' + statusCls;
+    statusBadge.textContent = statusCls === 'active' ? 'активна' : statusCls === 'pending' ? 'ожидает' : 'истекла';
+    const delBtn = document.createElement('button'); delBtn.className = 'abtn-del'; delBtn.textContent = '✕';
+    delBtn.addEventListener('click', () => { deleteLic(lic.id); document.getElementById('alc-' + lic.id)?.remove(); });
+    card.appendChild(info); card.appendChild(statusBadge); card.appendChild(delBtn);
+    el.appendChild(card);
+  });
+}
+
 function toast(msg, type = '') {
   const el = document.getElementById('toast');
   el.textContent = msg;
@@ -1219,9 +1181,6 @@ function toast(msg, type = '') {
   setTimeout(() => el.classList.remove('show'), 3500);
 }
 
-// ─────────────────────────────────────────────────────────
-//  INIT
-// ─────────────────────────────────────────────────────────
 async function init() {
   await restoreSession();
   setLang(lang);
