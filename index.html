@@ -1118,6 +1118,20 @@ function renderLicCard(lic, container) {
     card.appendChild(fullEl);
   }
 
+  // Кнопка копирования скрипта
+  const script = SCRIPTS.find(s => s.id === lic.script_id);
+  if (script && lic.active) {
+    const copyRow = document.createElement('div');
+    copyRow.style.cssText = 'margin-top:14px;padding-top:14px;border-top:1px solid var(--border)';
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'slot-add-btn';
+    copyBtn.style.cssText = 'width:100%;padding:10px;font-size:13px';
+    copyBtn.textContent = '📋 Скопировать скрипт';
+    copyBtn.addEventListener('click', () => copyRaw(script.raw));
+    copyRow.appendChild(copyBtn);
+    card.appendChild(copyRow);
+  }
+
   container.appendChild(card);
 }
 
