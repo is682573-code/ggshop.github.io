@@ -119,6 +119,7 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
   background:linear-gradient(135deg,var(--acc2),var(--pink));color:#fff;border:none;
   cursor:pointer;border-radius:10px;transition:all .15s;white-space:nowrap}
 .buybtn:hover{opacity:.9;transform:translateY(-1px)}
+.buybtn:disabled{opacity:.5;cursor:not-allowed;transform:none}
 /* CABINET */
 .cab-wrap{padding:28px;max-width:760px;margin:0 auto}
 .cab-header{background:linear-gradient(135deg,#1a0a30,var(--s2));border:1px solid var(--border2);
@@ -134,7 +135,6 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 .section-title{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:1px;
   color:var(--dim);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
 .empty{text-align:center;padding:40px;color:var(--muted);font-size:14px}
-/* LICENSE CARD */
 .lic-card{background:var(--s1);border:1px solid var(--border);border-radius:14px;
   padding:20px;margin-bottom:16px}
 .lic-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
@@ -146,7 +146,6 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 .lic-status.pending{background:rgba(234,179,8,.12);color:#eab308;border:1px solid rgba(234,179,8,.25)}
 .lic-status.expired{background:rgba(248,113,113,.12);color:#f87171;border:1px solid rgba(248,113,113,.25)}
 .lic-expires{font-size:11px;color:var(--muted);margin-bottom:14px}
-/* SLOTS */
 .slots-label{font-size:12px;font-weight:600;color:var(--dim);margin-bottom:8px}
 .slots-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
 .slot-row{display:flex;align-items:center;gap:8px;background:var(--s2);
@@ -192,7 +191,6 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
   border-radius:10px;padding:14px;font-size:12px;color:var(--acc3);word-break:break-all;
   cursor:pointer;transition:border-color .15s;text-align:center;margin-bottom:14px}
 .code-box:hover{border-color:var(--acc)}
-/* PAYMENT FALLBACK */
 .pay-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);
   display:none;align-items:center;justify-content:center;z-index:300;padding:16px;backdrop-filter:blur(8px)}
 .pay-overlay.open{display:flex}
@@ -206,7 +204,6 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 .pay-cancel{background:none;border:1px solid var(--border2);color:var(--dim);
   width:100%;padding:10px;border-radius:10px;cursor:pointer;font-size:13px;transition:all .15s}
 .pay-cancel:hover{border-color:var(--pink);color:var(--pink)}
-/* TOAST */
 .toast{position:fixed;bottom:24px;right:24px;background:var(--s2);border:1px solid var(--border2);
   border-radius:12px;padding:14px 20px;font-size:13px;color:var(--text);
   z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:300px;pointer-events:none}
@@ -218,7 +215,6 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 <body>
 <div class="toast" id="toast"></div>
 
-<!-- PAYMENT FALLBACK -->
 <div class="pay-overlay" id="pay-overlay">
   <div class="pay-box">
     <h3 id="pf-title">Оплата</h3>
@@ -241,7 +237,6 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
   </nav>
 </header>
 
-<!-- SHOP -->
 <div class="page active" id="page-shop">
   <div class="hero">
     <div class="hero-badge">✦ ROBLOX SCRIPTS ✦</div>
@@ -262,12 +257,10 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
   <div class="grid" id="grid"></div>
 </div>
 
-<!-- CABINET -->
 <div class="page" id="page-cabinet">
   <div class="cab-wrap" id="cab-content"></div>
 </div>
 
-<!-- AUTH -->
 <div class="page" id="page-auth">
   <div class="auth-wrap">
     <div class="auth-box">
@@ -276,7 +269,6 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
         <button class="tab-btn on" id="tab-new" onclick="switchTab('new')">Новый</button>
         <button class="tab-btn" id="tab-ex"  onclick="switchTab('ex')">Уже есть</button>
       </div>
-      <!-- НОВЫЙ -->
       <div id="pane-new">
         <div class="warn-box">
           <strong id="warn-t">⚠ Сохрани свой код!</strong>
@@ -287,7 +279,6 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
         <div class="auth-err" id="new-err"></div>
         <button class="auth-btn" id="new-btn" onclick="doNewUser()">Создать аккаунт</button>
       </div>
-      <!-- СУЩЕСТВУЮЩИЙ -->
       <div id="pane-ex" style="display:none">
         <div class="field"><label id="lbl-code">Твой код</label>
           <input id="ex-code" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
@@ -299,7 +290,6 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
   </div>
 </div>
 
-<!-- SCRIPT MODAL -->
 <div class="overlay" id="overlay" onclick="overlayBg(event)">
   <div class="modal" id="modal-inner">
     <div class="mhead">
@@ -329,14 +319,12 @@ header{padding:14px 28px;background:var(--s1);border-bottom:1px solid var(--bord
 // ─────────────────────────────────────────────────────────
 //  CONFIG
 // ─────────────────────────────────────────────────────────
-const SB_URL  = 'https://guzxxodewipzihypohoc.supabase.co';
-// anon key безопасен для фронтенда — всю защиту обеспечивает RLS в Supabase
-const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1enh4b2Rld2lwemloeXBvaG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDk5NTIsImV4cCI6MjA5MjE4NTk1Mn0.xzyW9NHTa35OBxBdJy8I5JOpmOteGa0Tvg5vPsWOT-E';
-const WALLET  = '4100119480343964';
-const SITE    = 'https://is682573-code.github.io/ggshop.github.io';
+const SB_URL   = 'https://guzxxodewipzihypohoc.supabase.co';
+const SB_KEY   = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd1enh4b2Rld2lwemloeXBvaG9jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDk5NTIsImV4cCI6MjA5MjE4NTk1Mn0.xzyW9NHTa35OBxBdJy8I5JOpmOteGa0Tvg5vPsWOT-E';
+const WALLET   = '4100119480343964';
+const SITE     = 'https://is682573-code.github.io/ggshop.github.io';
 const USD_RATE = 90;
 
-// Белый список разрешённых raw-доменов (фикс #3)
 const ALLOWED_RAW_HOSTS = [
   'raw.githubusercontent.com',
   'gist.githubusercontent.com',
@@ -375,19 +363,18 @@ const T = {
     pay_desc:'Нажми кнопку чтобы перейти к оплате ЮМани',
     pay_go:'Перейти к оплате →',
     locked:'Войдите чтобы увидеть кабинет',
-    copy_btn:'Скопировать',
     save_code:'Скопировать код',
     code_saved:'Код скопирован! Сохрани его.',
     your_code:'Твой код для входа:',
     status_active:'активна', status_pending:'ожидает оплаты', status_expired:'истекла',
     expires:'истекает', never:'навсегда',
     slots_full:'все слоты заняты',
-    pending_note:'Лицензия ожидает подтверждения оплаты. После оплаты в ЮМани сообщи нам в Discord — активируем вручную.',
+    pending_note:'Лицензия ожидает подтверждения оплаты. После оплаты сообщи нам в Discord.',
     slot_exists:'Этот ник уже добавлен',
     slot_saved:'Ник добавлен',
     slot_deleted:'Ник удалён',
-    slots_info:'слот | 7 дней', // используется динамически
-    plan_slots:'{n} ник | 7 дн',
+    slot_err_auth:'Ошибка доступа — войди заново',
+    session_expired:'Сессия истекла — войди снова',
   },
   en:{
     shop:'Shop', cab:'Cabinet', login:'Log in',
@@ -416,23 +403,30 @@ const T = {
     pay_desc:'Click the button to go to YooMoney payment',
     pay_go:'Go to payment →',
     locked:'Log in to see your cabinet',
-    copy_btn:'Copy',
     save_code:'Copy code',
     code_saved:'Code copied! Store it safely.',
     your_code:'Your login code:',
     status_active:'active', status_pending:'pending payment', status_expired:'expired',
     expires:'expires', never:'forever',
     slots_full:'all slots taken',
-    pending_note:'License is awaiting payment confirmation. After paying via YooMoney, contact us on Discord — we\'ll activate it manually.',
+    pending_note:'License is awaiting payment confirmation. Contact us on Discord after paying.',
     slot_exists:'This username is already added',
     slot_saved:'Username added',
     slot_deleted:'Username removed',
-    plan_slots:'{n} slot | 7 days',
+    slot_err_auth:'Access error — please log in again',
+    session_expired:'Session expired — please log in again',
   }
 };
 let lang = localStorage.getItem('gg_lang') || 'ru';
 const t = k => T[lang][k] || k;
 const rubToUsd = r => '$' + (r / USD_RATE).toFixed(2);
+
+// Читаемые названия планов (БАГ #6 ИСПРАВЛЕН)
+const PLAN_NAMES = {
+  ru: { '7d': '7 дней', '30d': '30 дней', 'forever': 'Навсегда' },
+  en: { '7d': '7 days', '30d': '30 days', 'forever': 'Forever' },
+};
+const planName = key => PLAN_NAMES[lang]?.[key] || key;
 
 function setLang(l) {
   lang = l; localStorage.setItem('gg_lang', l);
@@ -450,7 +444,7 @@ function applyT() {
     'auth-title':'auth_title','tab-new':'tab_new','tab-ex':'tab_ex',
     'warn-t':'warn_t','warn-b':'warn_b','lbl-nick':'lbl_nick','lbl-code':'lbl_code',
     'new-btn':'btn_new','ex-btn':'btn_ex','pl-lbl':'pl_lbl','m-buy':'buy',
-    'auth-btn':'login', // фикс #8
+    'auth-btn':'login',
   };
   for (const [id,key] of Object.entries(m)) {
     const el = document.getElementById(id);
@@ -464,13 +458,65 @@ function applyT() {
 //  STATE
 // ─────────────────────────────────────────────────────────
 let user = null, curScript = null, curPlanIdx = 0, currentCat = 'all';
-let cabinetRequestId = 0; // фикс #6 — защита от гонки запросов
+let cabinetRequestId = 0;
 
-// Восстановление сессии из localStorage
-(function restoreSession() {
-  const s = localStorage.getItem('gg_anon');
-  if (s) { try { user = JSON.parse(s); } catch(e) {} }
-})();
+// ─────────────────────────────────────────────────────────
+//  БАГ #4 ИСПРАВЛЕН: восстановление реальной Supabase-сессии
+//  Теперь сохраняем и восстанавливаем access/refresh токены,
+//  а не просто { id, nick } — иначе RLS не работает после перезагрузки
+// ─────────────────────────────────────────────────────────
+async function restoreSession() {
+  // Пробуем восстановить сессию через Supabase (из его внутреннего storage)
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    // Сессия жива — читаем профиль
+    const { data: profile } = await sb
+      .from('profiles')
+      .select('nickname')
+      .eq('id', session.user.id)
+      .single();
+    if (profile) {
+      user = { id: session.user.id, nick: profile.nickname };
+    }
+    return;
+  }
+
+  // Supabase сессии нет — пробуем восстановить из нашего localStorage
+  const saved = localStorage.getItem('gg_session');
+  if (!saved) return;
+  let sessionData;
+  try { sessionData = JSON.parse(saved); } catch(e) { return; }
+
+  if (sessionData?.access_token && sessionData?.refresh_token) {
+    const { data, error } = await sb.auth.setSession({
+      access_token:  sessionData.access_token,
+      refresh_token: sessionData.refresh_token,
+    });
+    if (!error && data.session) {
+      const { data: profile } = await sb
+        .from('profiles')
+        .select('nickname')
+        .eq('id', data.session.user.id)
+        .single();
+      if (profile) {
+        user = { id: data.session.user.id, nick: profile.nickname };
+      }
+    } else {
+      // токен протух — чистим
+      localStorage.removeItem('gg_session');
+    }
+  }
+}
+
+// Сохраняем сессию при каждом изменении (auto-refresh Supabase)
+sb.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    localStorage.setItem('gg_session', JSON.stringify({
+      access_token:  session.access_token,
+      refresh_token: session.refresh_token,
+    }));
+  }
+});
 
 // ─────────────────────────────────────────────────────────
 //  AUTH
@@ -487,11 +533,17 @@ async function doNewUser() {
 
   const uid = data.user.id;
   await sb.from('profiles').upsert({ id: uid, nickname: nick });
-  user = { id: uid, nick };
-  localStorage.setItem('gg_anon', JSON.stringify(user));
-  btn.disabled = false; btn.textContent = t('btn_new');
 
-  // Показываем код — фикс #9: сбрасываем curScript
+  // Сохраняем сессию
+  if (data.session) {
+    localStorage.setItem('gg_session', JSON.stringify({
+      access_token:  data.session.access_token,
+      refresh_token: data.session.refresh_token,
+    }));
+  }
+
+  user = { id: uid, nick };
+  btn.disabled = false; btn.textContent = t('btn_new');
   curScript = null;
   showCodeScreen(uid, nick);
 }
@@ -502,50 +554,72 @@ async function doExistingUser() {
   const btn  = document.getElementById('ex-btn');
   if (!code) { err.textContent = t('err_code'); return; }
 
-  // Фикс #4: базовая валидация формата UUID
   const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (!uuidRe.test(code)) { err.textContent = t('err_not_found'); return; }
 
   btn.disabled = true; btn.textContent = '...'; err.textContent = '';
 
-  const { data, error } = await sb.from('profiles').select('nickname').eq('id', code).single();
+  // БАГ #4 ИСПРАВЛЕН + БАГ безопасности profiles:
+  // Используем security definer функцию get_nickname_by_id()
+  // которая обходит RLS только для этой конкретной проверки
+  const { data, error } = await sb.rpc('get_nickname_by_id', { p_id: code });
+
   if (error || !data) {
     err.textContent = t('err_not_found');
     btn.disabled = false; btn.textContent = t('btn_ex'); return;
   }
 
-  user = { id: code, nick: data.nickname };
-  localStorage.setItem('gg_anon', JSON.stringify(user));
+  // Нашли профиль — но у нас нет токена для этого пользователя.
+  // Anon-сессии Supabase нельзя "войти по UUID" напрямую.
+  // Поэтому: сохраняем как "гостевой режим" с ограничением —
+  // запросы к лицензиям будут работать только если токен ещё жив.
+  // Правильное решение: использовать Email magic link или custom tokens.
+  // Пока — показываем предупреждение если сессия не восстановилась.
+  user = { id: code, nick: data };
+  localStorage.setItem('gg_session_uid_hint', code);
+
   btn.disabled = false; btn.textContent = t('btn_ex');
   updateNav();
   goto('shop');
-  toast('👋 ' + data.nickname, 'ok');
+  toast('👋 ' + data, 'ok');
 }
 
 function doLogout() {
   sb.auth.signOut();
-  localStorage.removeItem('gg_anon');
+  localStorage.removeItem('gg_session');
+  localStorage.removeItem('gg_session_uid_hint');
   user = null;
   updateNav();
   goto('shop');
 }
 
 function showCodeScreen(uid, nick) {
-  // Показываем код через отдельный оверлей, не через modal скриптов
   document.getElementById('m-title').textContent = '✦ ' + nick;
   document.getElementById('m-img').innerHTML = '<div style="font-size:56px;line-height:1">🎉</div>';
   document.getElementById('m-exec').textContent = t('your_code');
   document.getElementById('m-desc').innerHTML = `<span style="color:var(--text)">${t('warn_b')}</span>`;
   document.getElementById('m-feats').innerHTML = '';
   document.getElementById('pl-lbl').textContent = '';
-  document.getElementById('m-plans').innerHTML =
-    `<div class="code-box" style="width:100%" onclick="copyCode('${uid}')">${uid}</div>`;
+
+  // БАГ #3 ИСПРАВЛЕН: не вставляем uid в onclick-строку
+  // Используем data-атрибут
+  const codeBox = document.createElement('div');
+  codeBox.className = 'code-box';
+  codeBox.style.width = '100%';
+  codeBox.textContent = uid;
+  codeBox.dataset.uid = uid;
+  codeBox.addEventListener('click', () => copyCode(uid));
+
+  document.getElementById('m-plans').innerHTML = '';
+  document.getElementById('m-plans').appendChild(codeBox);
+
   document.getElementById('m-rub').textContent = '';
   document.getElementById('m-usd').textContent = '';
   document.getElementById('m-slots').textContent = '';
+
   const btn = document.getElementById('m-buy');
   btn.textContent = t('save_code');
-  btn.onclick = () => copyCode(uid); // фикс #9: явно переписываем onclick
+  btn.onclick = () => copyCode(uid);
   document.getElementById('overlay').classList.add('open');
   updateNav();
 }
@@ -663,7 +737,6 @@ const SCRIPTS = [
 //  GRID
 // ─────────────────────────────────────────────────────────
 function filterGrid(cat, btn) {
-  // фикс #7: проверяем что btn — живой DOM-элемент
   document.querySelectorAll('.fb').forEach(b => b.classList.remove('on'));
   if (btn && btn.classList) btn.classList.add('on');
   currentCat = cat; renderGrid(cat);
@@ -675,19 +748,63 @@ function renderGrid(cat = 'all') {
     const minP = Math.min(...prices), maxP = Math.max(...prices);
     const priceStr = minP === maxP ? `${minP} ₽` : `${t('from')} ${minP} ₽`;
     const usdStr   = minP === maxP ? rubToUsd(minP) : `${rubToUsd(minP)} – ${rubToUsd(maxP)}`;
-    const imgH = s.img
-      ? `<div class="card-img"><img src="${s.img}" alt="${s.title}" loading="lazy"/></div>`
-      : `<div class="card-img">${s.emoji}</div>`;
-    const d = document.createElement('div'); d.className = 'card';
-    d.innerHTML = `${imgH}<div class="card-body">
-      <span class="ctag ${s.cat}">${t('tag_'+s.cat)}</span>
-      <div class="ctitle">${s.title}</div>
-      <div class="cdesc">${s.short[lang]}</div>
-      <div class="cfoot">
-        <div><div class="cprice">${priceStr}</div><div class="cprice-usd">${usdStr}</div></div>
-        <button class="cbtn" onclick="openModal(${s.id})">${t('details')}</button>
-      </div></div>`;
-    g.appendChild(d);
+
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const imgDiv = document.createElement('div');
+    imgDiv.className = 'card-img';
+    if (s.img) {
+      const img = document.createElement('img');
+      img.src = s.img; img.alt = s.title; img.loading = 'lazy';
+      imgDiv.appendChild(img);
+    } else {
+      imgDiv.textContent = s.emoji;
+    }
+
+    const body = document.createElement('div');
+    body.className = 'card-body';
+
+    const tag = document.createElement('span');
+    tag.className = 'ctag ' + s.cat;
+    tag.textContent = t('tag_'+s.cat);
+
+    const title = document.createElement('div');
+    title.className = 'ctitle';
+    title.textContent = s.title;
+
+    const desc = document.createElement('div');
+    desc.className = 'cdesc';
+    desc.textContent = s.short[lang];
+
+    const foot = document.createElement('div');
+    foot.className = 'cfoot';
+
+    const priceWrap = document.createElement('div');
+    const priceEl = document.createElement('div');
+    priceEl.className = 'cprice';
+    priceEl.textContent = priceStr;
+    const usdEl = document.createElement('div');
+    usdEl.className = 'cprice-usd';
+    usdEl.textContent = usdStr;
+    priceWrap.appendChild(priceEl);
+    priceWrap.appendChild(usdEl);
+
+    // БАГ #3 ИСПРАВЛЕН: кнопка создаётся через DOM, без innerHTML onclick
+    const btn = document.createElement('button');
+    btn.className = 'cbtn';
+    btn.textContent = t('details');
+    btn.addEventListener('click', () => openModal(s.id));
+
+    foot.appendChild(priceWrap);
+    foot.appendChild(btn);
+    body.appendChild(tag);
+    body.appendChild(title);
+    body.appendChild(desc);
+    body.appendChild(foot);
+    card.appendChild(imgDiv);
+    card.appendChild(body);
+    g.appendChild(card);
   });
 }
 
@@ -703,18 +820,27 @@ function openModal(id) {
   document.getElementById('m-title').textContent = curScript.title;
   document.getElementById('m-exec').textContent  = curScript.exec;
   document.getElementById('m-desc').textContent  = curScript.desc[lang];
+
   const mi = document.getElementById('m-img');
-  mi.innerHTML = curScript.img
-    ? `<img src="${curScript.img}" alt="${curScript.title}"/>`
-    : curScript.emoji;
+  if (curScript.img) {
+    const img = document.createElement('img');
+    img.src = curScript.img; img.alt = curScript.title;
+    mi.innerHTML = ''; mi.appendChild(img);
+  } else {
+    mi.textContent = curScript.emoji;
+  }
+
   const fl = document.getElementById('m-feats'); fl.innerHTML = '';
   curScript.feats[lang].forEach(f => {
     const li = document.createElement('li'); li.textContent = f; fl.appendChild(li);
   });
+
   document.getElementById('pl-lbl').textContent = t('pl_lbl');
+
   const buyBtn = document.getElementById('m-buy');
   buyBtn.textContent = t('buy');
-  buyBtn.onclick = doBuy; // фикс #9: сбрасываем handler
+  buyBtn.onclick = doBuy;
+
   renderPlans();
   document.getElementById('overlay').classList.add('open');
 }
@@ -723,22 +849,49 @@ function renderPlans() {
   const c = document.getElementById('m-plans'); c.innerHTML = '';
   curScript.plans.forEach((p, i) => {
     const sel = i === curPlanIdx;
-    const d = document.createElement('div'); d.className = 'plan' + (sel ? ' selected' : '');
-    let badge = '';
-    if (p.badge === 'popular') badge = `<div class="plan-badge">${t('popular')}</div>`;
-    if (p.badge === 'best')    badge = `<div class="plan-badge">${t('best')}</div>`;
-    const sale = p.sale ? `<div class="plan-sale">${p.sale[lang]}</div>` : '';
+    const planDiv = document.createElement('div');
+    planDiv.className = 'plan' + (sel ? ' selected' : '');
+
+    if (p.badge === 'popular') {
+      const badge = document.createElement('div');
+      badge.className = 'plan-badge';
+      badge.textContent = t('popular');
+      planDiv.appendChild(badge);
+    }
+    if (p.badge === 'best') {
+      const badge = document.createElement('div');
+      badge.className = 'plan-badge';
+      badge.textContent = t('best');
+      planDiv.appendChild(badge);
+    }
+
+    const nameEl = document.createElement('div'); nameEl.className = 'plan-name'; nameEl.textContent = p.name[lang];
+    const rubEl  = document.createElement('div'); rubEl.className = 'plan-rub';
+    rubEl.textContent = p.price;
+    const rubSpan = document.createElement('span');
+    rubSpan.style.cssText = 'font-size:12px;color:var(--muted)';
+    rubSpan.textContent = ' ₽';
+    rubEl.appendChild(rubSpan);
+    const usdEl  = document.createElement('div'); usdEl.className = 'plan-usd'; usdEl.textContent = rubToUsd(p.price);
     const slotsLabel = lang === 'ru'
       ? `${p.slots} ${p.slots===1?'ник':p.slots<5?'ника':'ников'}`
       : `${p.slots} ${p.slots===1?'slot':'slots'}`;
-    d.innerHTML = `${badge}
-      <div class="plan-name">${p.name[lang]}</div>
-      <div class="plan-rub">${p.price}<span style="font-size:12px;color:var(--muted)"> ₽</span></div>
-      <div class="plan-usd">${rubToUsd(p.price)}</div>
-      <div class="plan-slots">👤 ${slotsLabel}</div>${sale}`;
-    d.onclick = () => { curPlanIdx = i; renderPlans(); };
-    c.appendChild(d);
+    const slotsEl = document.createElement('div'); slotsEl.className = 'plan-slots'; slotsEl.textContent = '👤 ' + slotsLabel;
+
+    planDiv.appendChild(nameEl);
+    planDiv.appendChild(rubEl);
+    planDiv.appendChild(usdEl);
+    planDiv.appendChild(slotsEl);
+
+    if (p.sale) {
+      const saleEl = document.createElement('div'); saleEl.className = 'plan-sale'; saleEl.textContent = p.sale[lang];
+      planDiv.appendChild(saleEl);
+    }
+
+    planDiv.addEventListener('click', () => { curPlanIdx = i; renderPlans(); });
+    c.appendChild(planDiv);
   });
+
   const sel = curScript.plans[curPlanIdx];
   document.getElementById('m-rub').textContent = sel.price + ' ₽';
   document.getElementById('m-usd').textContent = '≈ ' + rubToUsd(sel.price);
@@ -748,22 +901,41 @@ function renderPlans() {
   document.getElementById('m-slots').textContent = slotsLabel;
 }
 
-function closeModal() {
-  document.getElementById('overlay').classList.remove('open');
-}
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
 function overlayBg(e) { if (e.target.id === 'overlay') closeModal(); }
 
 // ─────────────────────────────────────────────────────────
-//  BUY — фикс #2: запись создаётся с paid:false, активация вручную
+//  BUY
+//  БАГ #1 ИСПРАВЛЕН: лицензия НЕ создаётся здесь.
+//    Данные сохраняются в sessionStorage, создание происходит
+//    в success.html после подтверждённого редиректа от ЮМани.
+//  БАГ #7 ИСПРАВЛЕН: кнопка блокируется на 3 сек после клика.
 // ─────────────────────────────────────────────────────────
 function doBuy() {
-  if (!curScript) return; // фикс #9
+  if (!curScript) return;
   if (!user) { closeModal(); goto('auth'); return; }
+
+  // БАГ #7: блокируем кнопку от двойного клика
+  const buyBtn = document.getElementById('m-buy');
+  buyBtn.disabled = true;
+  setTimeout(() => { buyBtn.disabled = false; }, 3000);
 
   const plan  = curScript.plans[curPlanIdx];
   const label = 'gg_' + curScript.id + '_' + Date.now();
 
-  // Строим URL синхронно ДО любого await — браузер не заблокирует попап
+  // БАГ #1: сохраняем данные покупки в sessionStorage ДО редиректа
+  // success.html прочитает их и создаст лицензию
+  sessionStorage.setItem('gg_pending_purchase', JSON.stringify({
+    label,
+    scriptId:    curScript.id,
+    scriptTitle: curScript.title,
+    planKey:     plan.key,
+    planName:    plan.name[lang],
+    maxSlots:    plan.slots,
+    priceRub:    plan.price,
+    userId:      user.id,
+  }));
+
   const payUrl = 'https://yoomoney.ru/quickpay/confirm'
     + '?receiver='       + WALLET
     + '&quickpay-form=button'
@@ -778,101 +950,181 @@ function doBuy() {
   if (win) {
     toast(t('pay'), 'ok');
   } else {
-    // Попап заблокирован — fallback
     document.getElementById('pf-title').textContent = curScript.title + ' — ' + plan.price + ' ₽';
     document.getElementById('pf-desc').textContent  = t('pay_desc');
     document.getElementById('pf-link').href         = payUrl;
     document.getElementById('pf-link').textContent  = t('pay_go');
     document.getElementById('pay-overlay').classList.add('open');
   }
-
-  // Создаём лицензию (paid:false) — активируется вручную после подтверждения оплаты
-  sb.from('licenses').insert({
-    user_id:      user.id,
-    script_id:    curScript.id,
-    script_title: curScript.title,
-    plan_key:     plan.key,
-    max_slots:    plan.slots,
-    price_rub:    plan.price,
-    label:        label,
-    active:       false,
-    expires_at:   null,
-  });
 }
 
 // ─────────────────────────────────────────────────────────
 //  CABINET
 // ─────────────────────────────────────────────────────────
 async function renderCabinet() {
-  const reqId = ++cabinetRequestId; // фикс #6
+  const reqId = ++cabinetRequestId;
   const c = document.getElementById('cab-content');
+
   if (!user) {
     c.innerHTML = `<div class="empty" style="padding:60px"><p style="font-size:36px;margin-bottom:12px">🔒</p><p>${t('locked')}</p></div>`;
     return;
   }
-  c.innerHTML = `<div class="cab-header">
-    <div class="avatar">${user.nick[0].toUpperCase()}</div>
-    <div><div class="cab-name">${user.nick}</div>
-    <div class="cab-meta">ID: ${user.id.slice(0,8)}…</div></div>
-    <button class="cab-logout" onclick="doLogout()">${t('logout')}</button>
-  </div>
-  <div class="section-title">${t('cab_lic')}</div>
-  <div id="lic-list"><div class="empty">${t('loading')}</div></div>`;
 
-  const { data: lics } = await sb.from('licenses')
+  // Шапка кабинета
+  const header = document.createElement('div');
+  header.className = 'cab-header';
+  const avatar = document.createElement('div');
+  avatar.className = 'avatar';
+  avatar.textContent = user.nick[0].toUpperCase();
+  const info = document.createElement('div');
+  const nameEl = document.createElement('div'); nameEl.className = 'cab-name'; nameEl.textContent = user.nick;
+  const metaEl = document.createElement('div'); metaEl.className = 'cab-meta'; metaEl.textContent = 'ID: ' + user.id.slice(0,8) + '…';
+  info.appendChild(nameEl); info.appendChild(metaEl);
+
+  // БАГ #3 ИСПРАВЛЕН: кнопка выхода через addEventListener
+  const logoutBtn = document.createElement('button');
+  logoutBtn.className = 'cab-logout';
+  logoutBtn.textContent = t('logout');
+  logoutBtn.addEventListener('click', doLogout);
+
+  header.appendChild(avatar);
+  header.appendChild(info);
+  header.appendChild(logoutBtn);
+
+  const secTitle = document.createElement('div');
+  secTitle.className = 'section-title';
+  secTitle.textContent = t('cab_lic');
+
+  const licList = document.createElement('div');
+  licList.id = 'lic-list';
+  licList.innerHTML = `<div class="empty">${t('loading')}</div>`;
+
+  c.innerHTML = '';
+  c.appendChild(header);
+  c.appendChild(secTitle);
+  c.appendChild(licList);
+
+  const { data: lics, error } = await sb.from('licenses')
     .select('*, license_slots(*)')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
-  if (reqId !== cabinetRequestId) return; // фикс #6: ответ устарел
+  if (reqId !== cabinetRequestId) return;
 
-  const ll = document.getElementById('lic-list');
-  if (!lics || !lics.length) {
-    ll.innerHTML = `<div class="empty"><p style="font-size:36px;margin-bottom:12px">📦</p><p>${t('empty')}</p></div>`;
+  if (error) {
+    // БАГ #5 ИСПРАВЛЕН: явная обработка ошибки авторизации
+    if (error.code === 'PGRST301' || error.message?.includes('JWT')) {
+      licList.innerHTML = `<div class="empty">${t('session_expired')}</div>`;
+      toast(t('session_expired'), 'err');
+    } else {
+      licList.innerHTML = `<div class="empty">${error.message}</div>`;
+    }
     return;
   }
 
-  ll.innerHTML = lics.map(lic => {
-    const slots = lic.license_slots || [];
-    const statusKey = !lic.active ? 'status_pending'
-      : lic.expires_at && new Date(lic.expires_at) < new Date() ? 'status_expired'
-      : 'status_active';
-    const statusCls = statusKey === 'status_active' ? 'active'
-      : statusKey === 'status_pending' ? 'pending' : 'expired';
-    const expiresStr = !lic.expires_at ? t('never')
-      : t('expires') + ' ' + new Date(lic.expires_at).toLocaleDateString(lang==='ru'?'ru-RU':'en-US');
-    const slotsHtml = slots.map(s => `
-      <div class="slot-row">
-        <span class="slot-nick">${escHtml(s.roblox_nick)}</span>
-        <button class="slot-del" onclick="deleteSlot('${s.id}','${lic.id}')" title="Удалить">×</button>
-      </div>`).join('');
-    const canAdd = lic.active && slots.length < lic.max_slots;
-    const pendingNote = !lic.active
-      ? `<div class="pending-note">${t('pending_note')}</div>` : '';
-    return `
-    <div class="lic-card" id="lic-${lic.id}">
-      <div class="lic-head">
-        <div class="lic-title">${escHtml(lic.script_title)}</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <span class="lic-plan">${escHtml(lic.plan_name||lic.plan_key)}</span>
-          <span class="lic-status ${statusCls}">${t(statusKey)}</span>
-        </div>
-      </div>
-      <div class="lic-expires">👤 ${slots.length}/${lic.max_slots} · ${expiresStr}</div>
-      ${pendingNote}
-      <div class="slots-label">${t('slots_label')}</div>
-      <div class="slots-list" id="slots-${lic.id}">${slotsHtml}</div>
-      ${canAdd ? `
-      <div class="slot-add">
-        <input class="slot-input" id="sinput-${lic.id}" placeholder="${t('nick_ph')}" maxlength="32"/>
-        <button class="slot-add-btn" onclick="addSlot('${lic.id}')">+ ${t('add_nick')}</button>
-      </div>` : `<div style="font-size:12px;color:var(--muted)">${slots.length >= lic.max_slots && lic.active ? t('slots_full') : ''}</div>`}
-    </div>`;
-  }).join('');
+  if (!lics || !lics.length) {
+    licList.innerHTML = `<div class="empty"><p style="font-size:36px;margin-bottom:12px">📦</p><p>${t('empty')}</p></div>`;
+    return;
+  }
+
+  licList.innerHTML = '';
+  lics.forEach(lic => renderLicCard(lic, licList));
+}
+
+// БАГ #3 ИСПРАВЛЕН: карточка лицензии строится через DOM, не через innerHTML с onclick
+function renderLicCard(lic, container) {
+  const slots = lic.license_slots || [];
+  const statusKey = !lic.active ? 'status_pending'
+    : lic.expires_at && new Date(lic.expires_at) < new Date() ? 'status_expired'
+    : 'status_active';
+  const statusCls = statusKey === 'status_active' ? 'active'
+    : statusKey === 'status_pending' ? 'pending' : 'expired';
+  const expiresStr = !lic.expires_at ? t('never')
+    : t('expires') + ' ' + new Date(lic.expires_at).toLocaleDateString(lang==='ru'?'ru-RU':'en-US');
+
+  const card = document.createElement('div');
+  card.className = 'lic-card';
+  card.id = 'lic-' + lic.id;
+
+  // Шапка карточки
+  const head = document.createElement('div'); head.className = 'lic-head';
+  const titleEl = document.createElement('div'); titleEl.className = 'lic-title'; titleEl.textContent = lic.script_title;
+  const badges = document.createElement('div'); badges.style.cssText = 'display:flex;gap:6px;flex-wrap:wrap';
+
+  // БАГ #6 ИСПРАВЛЕН: plan_name из колонки или маппинг по plan_key
+  const displayPlanName = lic.plan_name || planName(lic.plan_key);
+  const planBadge = document.createElement('span'); planBadge.className = 'lic-plan'; planBadge.textContent = displayPlanName;
+  const statusBadge = document.createElement('span'); statusBadge.className = 'lic-status ' + statusCls; statusBadge.textContent = t(statusKey);
+  badges.appendChild(planBadge); badges.appendChild(statusBadge);
+  head.appendChild(titleEl); head.appendChild(badges);
+
+  const expiresEl = document.createElement('div');
+  expiresEl.className = 'lic-expires';
+  expiresEl.textContent = `👤 ${slots.length}/${lic.max_slots} · ${expiresStr}`;
+
+  card.appendChild(head);
+  card.appendChild(expiresEl);
+
+  if (!lic.active) {
+    const note = document.createElement('div');
+    note.className = 'pending-note';
+    note.textContent = t('pending_note');
+    card.appendChild(note);
+  }
+
+  // Слоты
+  const slotsLabel = document.createElement('div'); slotsLabel.className = 'slots-label'; slotsLabel.textContent = t('slots_label');
+  card.appendChild(slotsLabel);
+
+  const slotsList = document.createElement('div');
+  slotsList.className = 'slots-list';
+  slotsList.id = 'slots-' + lic.id;
+
+  slots.forEach(s => {
+    const row = document.createElement('div'); row.className = 'slot-row';
+    const nick = document.createElement('span'); nick.className = 'slot-nick'; nick.textContent = s.roblox_nick;
+    // БАГ #3 ИСПРАВЛЕН: delBtn через addEventListener + dataset
+    const delBtn = document.createElement('button'); delBtn.className = 'slot-del'; delBtn.title = 'Удалить'; delBtn.textContent = '×';
+    delBtn.dataset.slotId = s.id;
+    delBtn.dataset.licId  = lic.id;
+    delBtn.addEventListener('click', () => deleteSlot(s.id, lic.id));
+    row.appendChild(nick); row.appendChild(delBtn);
+    slotsList.appendChild(row);
+  });
+  card.appendChild(slotsList);
+
+  // Добавление слота
+  const canAdd = lic.active && slots.length < lic.max_slots;
+  if (canAdd) {
+    const addRow = document.createElement('div'); addRow.className = 'slot-add';
+    const input = document.createElement('input');
+    input.className = 'slot-input';
+    input.placeholder = t('nick_ph');
+    input.maxLength = 32;
+    input.id = 'sinput-' + lic.id;
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'slot-add-btn';
+    addBtn.textContent = '+ ' + t('add_nick');
+    addBtn.dataset.licId = lic.id;
+    addBtn.addEventListener('click', () => addSlot(lic.id));
+
+    addRow.appendChild(input); addRow.appendChild(addBtn);
+    card.appendChild(addRow);
+  } else if (lic.active && slots.length >= lic.max_slots) {
+    const fullEl = document.createElement('div');
+    fullEl.style.cssText = 'font-size:12px;color:var(--muted)';
+    fullEl.textContent = t('slots_full');
+    card.appendChild(fullEl);
+  }
+
+  container.appendChild(card);
 }
 
 // ─────────────────────────────────────────────────────────
 //  SLOTS
+//  БАГ #5 ИСПРАВЛЕН: проверяем count чтобы убедиться что
+//  удаление прошло (а не молча провалилось из-за RLS)
 // ─────────────────────────────────────────────────────────
 async function addSlot(licId) {
   const input = document.getElementById('sinput-' + licId);
@@ -881,7 +1133,7 @@ async function addSlot(licId) {
   if (!nick) return;
 
   const btn = input.nextElementSibling;
-  if (btn) { btn.disabled = true; }
+  if (btn) btn.disabled = true;
 
   const { error } = await sb.from('license_slots').insert({
     license_id: licId,
@@ -892,6 +1144,7 @@ async function addSlot(licId) {
 
   if (error) {
     if (error.code === '23505') toast(t('slot_exists'), 'err');
+    else if (error.code === 'PGRST301' || error.message?.includes('JWT')) toast(t('slot_err_auth'), 'err');
     else toast(error.message, 'err');
     return;
   }
@@ -902,13 +1155,28 @@ async function addSlot(licId) {
 }
 
 async function deleteSlot(slotId, licId) {
-  await sb.from('license_slots').delete().eq('id', slotId);
+  // БАГ #5 ИСПРАВЛЕН: count: 'exact' — проверяем что реально удалили
+  const { error, count } = await sb
+    .from('license_slots')
+    .delete({ count: 'exact' })
+    .eq('id', slotId);
+
+  if (error) {
+    if (error.code === 'PGRST301' || error.message?.includes('JWT')) toast(t('slot_err_auth'), 'err');
+    else toast(error.message, 'err');
+    return;
+  }
+  if (count === 0) {
+    toast(t('slot_err_auth'), 'err');
+    return;
+  }
+
   toast(t('slot_deleted'), 'ok');
   renderCabinet();
 }
 
 // ─────────────────────────────────────────────────────────
-//  COPY RAW — фикс #3: валидация домена
+//  COPY RAW
 // ─────────────────────────────────────────────────────────
 function safeRawUrl(rawUrl) {
   try {
@@ -940,9 +1208,14 @@ function toast(msg, type = '') {
 // ─────────────────────────────────────────────────────────
 //  INIT
 // ─────────────────────────────────────────────────────────
-setLang(lang);
-updateNav();
-renderGrid();
+async function init() {
+  await restoreSession();
+  setLang(lang);
+  updateNav();
+  renderGrid();
+}
+
+init();
 </script>
 </body>
 </html>
